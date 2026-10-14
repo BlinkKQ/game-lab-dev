@@ -1,10 +1,10 @@
 # GameLab Minigolfe — mecânicas
 
 **Fase:** 4 — protótipo construído.  
-**Fonte:** [GDD v0.2](GDD.md).  
-**Situação:** comportamento implementado e verificado em Linux. Veja [VALIDACAO.md](VALIDACAO.md); aceite no iPhone pendente.
+**Fonte:** [GDD v0.3](GDD.md) e [conversão 3D](CONVERSAO_3D.md).  
+**Situação:** comportamento implementado e verificado em Linux. Veja [VALIDACAO.md](VALIDACAO_3D.md); aceite no iPhone pendente.
 
-O MVP é um minigolfe 2D com visão superior, tela vertical, uma pessoa e três percursos em ordem fixa. A partida e o recorde local funcionam offline. Godot 4.6.3 e GDScript são as tecnologias da implementação. O primeiro alvo é o iPhone, com mouse no computador durante o desenvolvimento. A distribuição permanece privada até autorização explícita para publicar ou compartilhar.
+O MVP é um minigolfe 3D com câmera inclinada, interface vertical, uma pessoa e três percursos em ordem fixa. A partida e o recorde local funcionam offline. Godot 4.6.3 e GDScript são as tecnologias da implementação. O primeiro alvo é o iPhone, com mouse no computador durante o desenvolvimento. A distribuição permanece privada até autorização explícita para publicar ou compartilhar.
 
 ## 1. Sessão e estados
 
@@ -71,11 +71,11 @@ As medidas são coordenadas de projeto. Escalar a apresentação não altera a f
 | Velocidade máxima de captura | 150 unidades/s |
 | Feedback de conclusão | Aproximadamente 0,7 s |
 
-Aplicar desaceleração constante ao módulo da velocidade, proporcional ao tempo do passo e limitada em zero. Não há altura, gravidade vertical, vento ou atrito por tipo de piso. Em colisão com uma parede, refletir a componente normal da velocidade e multiplicá-la por 0,78; preservar a componente tangencial. A desaceleração continua após o impacto. Impedir atravessar paredes, inclusive na potência máxima.
+A bola usa `CharacterBody3D`. Aplicar frenagem horizontal quando apoiada e gravidade real de 9,8 m/s². Rampas projetam o movimento sobre a superfície; ao sair da borda conservar o movimento vertical, permitindo pequenos saltos. No ar, suspender a frenagem do piso. Não há vento. Em colisão com uma parede, refletir a componente normal da velocidade e multiplicá-la por 0,78; preservar a componente tangencial. A desaceleração continua após o impacto. Impedir atravessar paredes, inclusive na potência máxima.
 
-Se a velocidade permanecer abaixo de 12 unidades/s durante 0,12 s, zerá-la e liberar a bola. Interromper essa confirmação se a velocidade deixar de satisfazer o limiar. Verificar captura antes de liberar uma nova tacada no mesmo passo.
+Se a esfera estiver apoiada e sua velocidade horizontal permanecer abaixo de 12 unidades/s durante 0,12 s, zerá-la e liberar a bola. Interromper essa confirmação se a velocidade deixar de satisfazer o limiar. Verificar captura antes de liberar uma nova tacada no mesmo passo.
 
-Capturar quando a distância entre os centros da bola e do buraco for de até 22 unidades e a velocidade for de até 150 unidades/s. O alvo é uma região de captura, sem parede circular adicional. Uma passagem mais rápida não conclui o buraco.
+Capturar somente quando apoiada na altura do buraco, com distância horizontal de até 22 unidades e velocidade horizontal de até 150 unidades/s. O alvo é uma região de captura, sem parede circular adicional. Uma passagem mais rápida não conclui o buraco.
 
 ## 4. Captura e pontuação sem duplicação
 
@@ -99,7 +99,7 @@ Mira, cancelamento, toque inválido, pausa e reposicionamento não acrescentam t
 
 ## 5. Fora de jogo e retorno
 
-Entrar com o centro da bola na região fora de jogo do mapa 03 inicia o retorno. Aplicar a mesma recuperação se a bola escapar da região válida por falha de colisão.
+Cair na água do mapa 03 inicia o retorno. Cruzar o vão no ar permanece permitido. Aplicar a mesma recuperação se a bola escapar da região válida por falha de colisão.
 
 Manter a tacada já contada, sem penalidade adicional. Após uma indicação breve de retorno, restaurar a posição imediatamente anterior ao último lançamento, zerar a velocidade, limpar a mira e liberar a bola. Se a posição guardada for inválida, usar a posição inicial do mapa. A duração inicial do retorno é 0,35 s; sua contagem fica congelada durante pausa.
 
@@ -172,6 +172,6 @@ Separar dados dos mapas da física e manter pontuação e transições verificá
 
 ## 10. Validação necessária
 
-Os comportamentos receberam verificações em engine/Linux, registradas no [relatório](VALIDACAO.md). Avaliação humana e testes no iPhone permanecem pendentes. Verificar controles, limites de potência, paredes na velocidade máxima, repouso, captura lenta/rápida, retorno sem penalidade, avanço único, total durante captura, pausa em todos os estados e combinação de motivos de pausa. Cobrir leitura inválida/desconhecida, falha e recuperação de escrita, repetição, abandono e funcionamento offline.
+Os comportamentos receberam verificações em engine/Linux, registradas no [relatório](VALIDACAO_3D.md). Avaliação humana e testes no iPhone permanecem pendentes. Verificar controles, limites de potência, paredes na velocidade máxima, repouso, captura lenta/rápida, retorno sem penalidade, avanço único, total durante captura, pausa em todos os estados e combinação de motivos de pausa. Cobrir leitura inválida/desconhecida, falha e recuperação de escrita, repetição, abandono e funcionamento offline.
 
-Toque, área segura, desempenho e persistência no iPhone exigem execução real no aparelho; testes de mouse ou em outro ambiente não os substituem. Os critérios completos estão no GDD.
+Toque, área segura, desempenho e persistência no iPhone exigem execução real no aparelho; testes de mouse ou em outro ambiente não os substituem. Os critérios e as novas condições de altura estão no GDD e na conversão 3D.

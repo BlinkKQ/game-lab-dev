@@ -1,12 +1,14 @@
 # GameLab — documento de concepção do jogo
 
-**Versão:** 0.2 · 14/10/2026  
+**Revisão 3D:** a versão 0.3 incorpora rampas, pisos elevados e pequenos saltos. [Alturas e regras 3D](CONVERSAO_3D.md) · [Resultados da versão atual](VALIDACAO_3D.md).
+
+**Versão:** 0.3 · 14/10/2026  
 **Fase:** 4 — protótipo construído; avaliação em andamento  
 **Nome de trabalho:** GameLab Minigolfe  
-**Situação:** protótipo Godot 4.6.3 executado e verificado em Linux; avaliação humana e testes no iPhone pendentes. Veja o [relatório de validação](VALIDACAO.md).  
+**Situação:** protótipo 3D Godot 4.6.3 com rampas e saltos, verificado em Linux; avaliação humana e testes no iPhone pendentes. Veja o [relatório de validação](VALIDACAO_3D.md).  
 **Base:** `GameLab_Analise_Videos_02_Planejamento.md`, versão 4, e `GameLab_Prompts_Passo_a_Passo.md`.
 
-Esta revisão parte exclusivamente do GDD v0.1 enviado pelo usuário. Os documentos citados como base não acompanharam esta entrega. O GDD é a fonte canônica do pacote de desenvolvimento; mecânicas, telas e critérios detalham suas regras. As alterações da v0.2 estão registradas ao final.
+Esta revisão parte exclusivamente do GDD v0.1 enviado pelo usuário. Os documentos citados como base não acompanharam esta entrega. O GDD e a [revisão 3D](CONVERSAO_3D.md) definem o pacote atual; mecânicas, telas e critérios detalham suas regras. As alterações da v0.2 estão registradas ao final.
 
 ## 1. Conceito e objetivo
 
@@ -32,7 +34,7 @@ O primeiro alvo de uso é o iPhone. O computador, com mouse, será usado durante
 | Item | Definição nesta versão |
 | --- | --- |
 | Tecnologia planejada | Godot 4.6.3 e GDScript; versão fixada na implementação |
-| Apresentação | 2D, visão superior, tela vertical |
+| Apresentação | 3D, câmera ortográfica inclinada, interface vertical |
 | Jogadores | Um jogador, sem adversários |
 | Conexão | Toda a partida e o recorde local funcionam offline |
 | Sessão | Três percursos originais, sempre na mesma ordem |
@@ -43,7 +45,7 @@ O primeiro alvo de uso é o iPhone. O computador, com mouse, será usado durante
 | Limite de tempo | Sem contagem regressiva e sem derrota por tempo |
 | Identidade | Formas, cores, mapas, textos e efeitos próprios |
 
-A referência apresenta saltos, rampas, plataformas e transporte vertical pela água. O MVP deste documento usa geometria plana. Caso preservar o movimento em altura se torne o objetivo principal, o escopo deve ser revisto para 3D antes de produzir os mapas definitivos. Essa mudança exigiria trabalho nas cenas, na física e nos percursos.
+A revisão 0.3 atende ao pedido de rampas, alturas e pequenos saltos em 3D. Os três mapas mantêm sua grade de navegação e ganham pisos com colisão, níveis elevados e um vão com água. As alturas e a física estão detalhadas na [conversão 3D](CONVERSAO_3D.md). Água com transporte vertical permanece fora do escopo.
 
 ### Dentro da primeira versão
 
@@ -58,7 +60,7 @@ A referência apresenta saltos, rampas, plataformas e transporte vertical pela �
 
 ### Etapas posteriores
 
-Multiplayer, bots, salas, contas, ranking online, equipamentos com atributos, moedas, baús, loja, compras, anúncios, clãs e eventos. Altura, água com transporte e vento também ficam para uma revisão posterior de escopo. Música e polimento sonoro não bloqueiam a avaliação inicial.
+Multiplayer, bots, salas, contas, ranking online, equipamentos com atributos, moedas, baús, loja, compras, anúncios, clãs e eventos. Água com transporte e vento continuam para uma revisão posterior; altura, rampas e salto já pertencem a esta versão. Música e polimento sonoro não bloqueiam a avaliação inicial.
 
 ## 3. Ciclo da partida e estados
 
@@ -140,7 +142,7 @@ Cada gesto produz no máximo um lançamento, incluindo plataformas que emulam ev
 
 ## 5. Física e parâmetros iniciais
 
-Uma unidade lógica corresponde a uma unidade das coordenadas de projeto. A apresentação é escalada para a tela; os parâmetros físicos e os mapas conservam suas medidas lógicas.
+A grade lógica organiza a navegação e o controle. Cada 100 unidades corresponde a 1 metro; X/Y da grade viram X/Z no mundo 3D, enquanto Y no mundo mede altura. A câmera projeta o toque no plano da altura atual da bola. A interface usa a referência de 720 × 1280.
 
 | Parâmetro | Valor inicial | Uso |
 | --- | ---: | --- |
@@ -161,21 +163,21 @@ Uma unidade lógica corresponde a uma unidade das coordenadas de projeto. A apre
 
 ### Movimento
 
-Aplicar desaceleração constante ao módulo da velocidade, limitada em zero e proporcional ao tempo de cada passo. A bola não recebe aceleração espontânea em campo livre. Não há altura, gravidade vertical, vento ou alteração de atrito por tipo de piso nesta versão.
+Aplicar frenagem horizontal de 5 m/s² enquanto a esfera está apoiada. A gravidade é 9,8 m/s² e afeta o movimento nas rampas e no ar. No ar não há frenagem de piso; conservar a componente vertical adquirida ao sair da rampa. Aterrissar desliza sobre o piso; não adicionar um impulso de salto por botão. As colisões usam o corpo e os pisos 3D reais.
 
 Em um impacto com uma parede, refletir a componente normal da velocidade e multiplicá-la por 0,78. Preservar a componente tangencial naquele impacto; a desaceleração continua sendo aplicada. A detecção deve impedir atravessar paredes, inclusive na potência máxima.
 
-Se a velocidade permanecer abaixo do limiar durante o intervalo definido, zerar a velocidade e liberar a bola. O início de uma mira nunca deve conservar uma velocidade residual.
+Se a esfera estiver apoiada e sua velocidade horizontal permanecer abaixo do limiar durante o intervalo definido, zerar a velocidade e liberar a bola. O início de uma mira nunca deve conservar uma velocidade residual.
 
 ### Captura
 
-Capturar quando o centro da bola estiver a até 22 unidades do centro do buraco e sua velocidade for de até 150 unidades/s. A captura bloqueia a entrada, interrompe o movimento e registra o contador daquele percurso uma única vez. Na mesma transição, guardar o valor para o feedback, acrescentá-lo aos resultados e zerar o contador atual. O feedback lê o resultado registrado, sem alterar a pontuação.
+Capturar com a esfera apoiada na altura do buraco, a até 22 unidades na grade e com velocidade horizontal de até 150 unidades/s. Passar por cima no ar não captura. A captura bloqueia a entrada, interrompe o movimento e registra o contador daquele percurso uma única vez. Na mesma transição, guardar o valor para o feedback, acrescentá-lo aos resultados e zerar o contador atual. O feedback lê o resultado registrado, sem alterar a pontuação.
 
 O alvo é uma região de captura, sem uma parede circular adicional. Uma passagem rápida pela região não conclui o buraco. A verificação de captura deve preceder a liberação para outra tacada no mesmo passo.
 
 ### Área fora de jogo e retorno
 
-O terceiro mapa possui uma região sinalizada como fora de jogo. Entrar nela com o centro da bola inicia o retorno à posição guardada imediatamente antes do último lançamento. Também aplicar o retorno se a bola escapar da região válida do mapa por qualquer falha de colisão.
+O terceiro mapa possui um vão com água. Cair até a água inicia o retorno à posição e altura guardadas antes do lançamento; atravessar o vão no ar não inicia retorno. Também aplicar o retorno se a bola escapar da região válida do mapa por qualquer falha de colisão.
 
 A tacada já realizada continua no contador. **Não acrescentar outra tacada de penalidade.** Ao retornar, zerar a velocidade, limpar qualquer mira anterior e liberar o controle. A posição guardada deve ser válida; usar a posição inicial do mapa como recuperação se houver um dado inválido.
 
@@ -185,7 +187,7 @@ A tacada já realizada continua no contador. **Não acrescentar outra tacada de 
 
 Origem no canto superior esquerdo; `x` cresce para a direita e `y` para baixo. Os três mapas usam a região delimitada por `x = 64 a 656` e `y = 200 a 1100`. As superfícies das paredes externas coincidem com essas bordas. Os centros da bola precisam respeitar também seu raio.
 
-Retângulos são descritos como **(x, y, largura, altura)**. Os pontos e as dimensões abaixo são uma primeira versão de desenho, ajustável depois do teste de jogabilidade.
+Retângulos são descritos como **(x, y, largura, altura)** na grade de navegação. Os pontos abaixo conservam a projeção dos mapas anteriores; pisos e alturas adicionais estão na [conversão 3D](CONVERSAO_3D.md).
 
 | Mapa | Nome | Posição inicial | Buraco | Paredes internas | Área fora de jogo |
 | --- | --- | --- | --- | --- | --- |
@@ -271,7 +273,7 @@ Guardar um único registro local, com versão do formato e melhor total. Exemplo
 }
 ```
 
-`best_total` aceita ausência de recorde ou um inteiro de pelo menos 3. Não salvar dados pessoais, credenciais, estatísticas de terceiros ou informações de conta.
+`best_total` aceita ausência de recorde ou um inteiro de pelo menos 3. Não salvar dados pessoais, credenciais, estatísticas de terceiros ou informações de conta. Nesta versão, usar `user://record_3d.json`, preservando o arquivo do protótipo anterior.
 
 Validar o valor numérico como matematicamente integral; rejeitar booleanos, frações e valores abaixo de 3. Aceitar o valor integral lido do JSON mesmo se o parser representar números internamente como ponto flutuante. O formato continua contendo apenas a versão e o recorde salvo.
 
@@ -292,7 +294,7 @@ O melhor desta execução permanece em memória ao repetir ou voltar ao menu, me
 | Responsabilidade | Deve controlar |
 | --- | --- |
 | Entrada | Toque ou mouse, dedo ativo, zona neutra, direção e intensidade da prévia |
-| Bola | Velocidade, desaceleração, colisões e critério de repouso |
+| Bola | Velocidade 3D, gravidade, contato, colisões nativas e repouso apoiado |
 | Percurso | Paredes, alvo, posição inicial, região válida e área fora de jogo |
 | Sessão | Estados, pontuação, troca de mapas e encerramento |
 | Interface | Menu, instruções, contadores, confirmação de abandono e resultado |
@@ -304,7 +306,7 @@ A escolha dos nós concretos, o desenho das cenas e as instruções de execuçã
 
 ## 12. Critérios de aceitação do MVP
 
-**Aceite por plataforma:** os critérios receberam verificações em engine/Linux, conforme o [relatório de validação](VALIDACAO.md). Avaliação humana e aceite no iPhone permanecem pendentes; uma verificação em Linux não aprova o aparelho.
+**Aceite por plataforma:** os critérios receberam verificações em engine/Linux, conforme o [relatório de validação](VALIDACAO_3D.md). Avaliação humana e aceite no iPhone permanecem pendentes; uma verificação em Linux não aprova o aparelho.
 
 | ID | Verificação | Resultado esperado |
 | --- | --- | --- |
@@ -319,7 +321,7 @@ A escolha dos nós concretos, o desenho das cenas e as instruções de execuçã
 | AC-09 | Esperar a bola parar | Liberar a mira sem velocidade residual |
 | AC-10 | Passar pelo alvo acima da velocidade de captura | Não concluir o buraco naquele instante |
 | AC-11 | Entrar no alvo em velocidade válida | Capturar, contar o resultado uma vez e bloquear novas tacadas |
-| AC-12 | Entrar na área fora de jogo | Retornar à posição anterior, com velocidade zero e sem tacada adicional |
+| AC-12 | Cair na água do mapa 03 | Retornar à posição e altura anterior, com velocidade zero e sem tacada adicional; passagem aérea permitida |
 | AC-13 | Concluir os mapas 01, 02 e 03 | Avançar na ordem e abrir o resultado somente após o terceiro |
 | AC-14 | Registrar resultados 3, 4 e 5 em um teste de pontuação | Mostrar total 12 |
 | AC-15 | Repetir uma sessão ou abandoná-la | Zerar a sessão seguinte e preservar o melhor total já salvo |
@@ -338,12 +340,19 @@ A escolha dos nós concretos, o desenho das cenas e as instruções de execuçã
 | AC-28 | Gravar e reler 3; ler null, frações, booleanos, valores abaixo de 3 e versão desconhecida | Integral válido aceito; inválidos não travam; formato desconhecido e seu arquivo preservados |
 | AC-29 | Testar impactos oblíquos e cantos na potência máxima | Não atravessar paredes; componente tangencial preservada e normal refletida com coeficiente 0,78 em cada impacto resolvido |
 | AC-30 | Forçar escape dos limites e posição de retorno inválida | Reposicionar sem penalidade adicional; usar início do mapa se a posição guardada for inválida |
+| AC-31 | Carregar cenário 3D e lançar contra paredes | Esfera e pisos usam colisores reais; movimento não atravessa paredes |
+| AC-32 | Mirar com câmera inclinada e bola em altura | Mouse e toque correspondem à posição da bola; arraste mantém direção e potência |
+| AC-33 | Soltar uma esfera no ar e esperar repouso | Gravidade, aterrissagem e apoio reais; não liberar mira no ápice |
+| AC-34 | Subir a rampa do mapa 02 | Alcançar e repousar no terraço de 0,60 m |
+| AC-35 | Lançar pela rampa do mapa 03 com força suficiente | Salto natural, passagem sobre a água e aterrissagem; sem botão de salto |
+| AC-36 | Cair na água e recuperar posição elevada | Preservar tacada e retornar à posição e altura segura |
+| AC-37 | Aterrissar sobre um obstáculo e pausar no ar | Confirmar repouso no topo, permitir mira nessa altura e congelar movimento em pausas |
 
 Os critérios de toque, área segura, desempenho e persistência no iPhone exigem execução real no aparelho. Um teste de mouse ou em outro ambiente não será apresentado como teste de iPhone.
 
 ## 13. Validação da especificação nesta fase
 
-Foi realizada uma verificação matemática das rotas propostas: segmentos dentro das bordas, sem atravessar os retângulos de obstáculos ampliados pelo raio da bola e sem cruzar a região fora de jogo também ampliada pelo raio, como margem conservadora.
+A revisão anterior realizou uma verificação matemática da projeção plana das rotas propostas: segmentos dentro das bordas, sem atravessar os retângulos de obstáculos ampliados pelo raio da bola e sem cruzar a região fora de jogo também ampliada pelo raio, como margem conservadora.
 
 Com velocidade máxima de 1.000 unidades/s e desaceleração de 500 unidades/s², o modelo contínuo em campo livre permite uma distância nominal de parada de 1.000 unidades. Todos os segmentos das rotas são menores que essa distância.
 
@@ -353,7 +362,7 @@ Com velocidade máxima de 1.000 unidades/s e desaceleração de 500 unidades/s²
 | 02 | 362,35; 320,00; 322,49 unidades | Rota livre |
 | 03 | 283,20; 320,00; 261,73 unidades | Rota livre |
 
-Essa verificação reduz o risco de definir um mapa sem passagem. Ela não demonstra conforto de controle, número mínimo de tacadas, funcionamento das colisões na engine ou diversão. A discretização da física e a velocidade de captura ainda precisam ser avaliadas no protótipo.
+Essa verificação se refere à geometria plana de origem; não comprova o movimento em rampas ou saltos. Os testes nativos da revisão 3D validam o fluxo atual. Ela reduz o risco de definir um mapa sem passagem. Ela não demonstra conforto de controle, número mínimo de tacadas, funcionamento das colisões na engine ou diversão. A discretização da física e a velocidade de captura ainda precisam ser avaliadas no protótipo.
 
 ## 14. Roadmap e pendências
 
@@ -376,7 +385,7 @@ Essa verificação reduz o risco de definir um mapa sem passagem. Ela não demon
 
 ### Limites preservados
 
-O código e a arte vetorial são próprios. Nenhum aplicativo original foi descompilado, e seus coeficientes internos não foram recuperados. O protótipo e o PCK foram verificados em Linux; ainda não há avaliação humana de jogabilidade, exportação iOS, publicação ou distribuição.
+O código, as malhas 3D procedurais e a interface são próprios. Nenhum aplicativo original foi descompilado, e seus coeficientes internos não foram recuperados. O protótipo e o PCK foram verificados em Linux; ainda não há avaliação humana de jogabilidade, exportação iOS, publicação ou distribuição.
 
 ## 15. Histórico da v0.2
 

@@ -8,6 +8,9 @@ const Session = preload("res://scripts/golf_session.gd")
 func run(check: Callable) -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	var app = load("res://scenes/main.tscn").instantiate()
+	# Shared UI/state regressions use the preserved planar adapter. Native 3D
+	# collision, camera mapping and terrain are exercised by test_3d.gd.
+	app.use_3d = false
 	var path := OS.get_cache_dir().path_join("gamelab-ui-%d-%d.json" % [OS.get_process_id(), Time.get_ticks_usec()])
 	app.record_path = path
 	tree.root.add_child(app)

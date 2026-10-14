@@ -1,13 +1,13 @@
 # Roadmap — GameLab Minigolfe
 
-Fonte de escopo: [GDD v0.2](GDD.md). Detalhes de verificação: [critérios de aceitação](CRITERIOS_ACEITACAO.md). O protótipo e o PCK foram implementados e verificados em Linux; evidências e limitações estão em [VALIDACAO.md](VALIDACAO.md).
+Fonte de escopo: [GDD v0.3](GDD.md) e [conversão 3D](CONVERSAO_3D.md). Detalhes de verificação: [critérios de aceitação](CRITERIOS_ACEITACAO.md). O protótipo e o PCK foram implementados e verificados em Linux; evidências e limitações estão em [VALIDACAO.md](VALIDACAO_3D.md).
 
 ## Fases e estado
 
 | Fase | Entrega | Estado atual | Condição de conclusão |
 | --- | --- | --- | --- |
 | 2 — definição | GDD com regras, mapas e parâmetros | GDD v0.1 recebido e revisado | Escopo suficientemente concreto para preparar a implementação |
-| 3 — passagem para desenvolvimento | GDD v0.2, mecânicas, telas, critérios, roadmap e README | Pacote documental preparado | Documentos consistentes, decisões preservadas e testes planejados |
+| 3 — passagem para desenvolvimento | GDD v0.3, mecânicas, telas, critérios, roadmap e README | Pacote documental preparado | Documentos consistentes, decisões preservadas e testes planejados |
 | 4 — construção | Projeto Godot com os três percursos | Protótipo e PCK verificados em Linux | Executável no computador, fluxo principal disponível e verificações básicas concluídas |
 | 5 — avaliação | Relatório dos critérios, falhas e ajustes | Relatório técnico Linux disponível; avaliação humana pendente | Evidências por critério e alvo; problemas separados de pendências e testes não executados |
 | 6 — teste privado no iPhone | Versão privada testável no aparelho | Pendente | Fluxo principal, toque, área segura, suspensão e salvamento testados no iPhone real |
@@ -42,10 +42,10 @@ Testar no aparelho real toque e dedo adicional, recortes e área segura, suspens
 
 | Decisão | Quando resolver | Limite |
 | --- | --- | --- |
-| Engine e arquitetura | Definidos: Godot 4.6.3, Node2D e modelo separado | Atender GDScript, 2D e as regras do GDD |
-| Operações de gravação e dados | Definidos: user://record.json e substituição de temporário | Comportamento testado em Linux; verificar no iPhone |
+| Engine e arquitetura | Definidos: Godot 4.6.3, cenário/corpo 3D e interface separada | Atender GDScript, 2D e as regras do GDD |
+| Operações de gravação e dados | Definidos: user://record_3d.json e substituição de temporário | Comportamento testado em Linux; verificar no iPhone |
 | Calibração física e conforto do gesto | Protótipo jogável | Atualizar a fonte canônica e os testes juntos |
 | Nome final, arte e sons | Avaliação/polimento | Recursos próprios ou com permissão; não bloquear o protótipo |
 | Procedimento de teste privado no iPhone | Preparação da fase 6 | Sem publicação implícita ou promessa de validação no aparelho |
 
-Não são pré-requisitos do MVP: backend, contas, ranking online, bots, monetização, multiplayer ou Android. Rever o escopo para 3D antes de produzir mapas definitivos somente se movimento em altura passar a ser objetivo principal.
+Não são pré-requisitos do MVP: backend, contas, ranking online, bots, monetização, multiplayer ou Android. A revisão 3D já inclui rampas e pequenos saltos. Calibrar os mapas após jogar antes de produzir arte final.

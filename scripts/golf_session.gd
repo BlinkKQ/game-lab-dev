@@ -26,6 +26,10 @@ var captured_strokes := 0
 var remaining := 0.0
 var resting_time := 0.0
 var pause_reasons: Dictionary = {}
+var motion_adapter: RefCounted = null
+var elevation := 0.14
+var vertical_velocity := 0.0
+var previous_elevation := 0.14
 
 
 func start_session() -> void:
@@ -80,6 +84,7 @@ func release_aim(point: Vector2, pointer_id: int) -> bool:
 		state = State.READY
 		return false
 	previous_position = position
+	previous_elevation = elevation
 	velocity = direction * intensity * Config.MAX_SPEED
 	current_strokes += 1
 	resting_time = 0.0
@@ -182,11 +187,17 @@ func _clear_pointer() -> void:
 func _load_course() -> void:
 	position = current_course()["start"]
 	previous_position = position
+	elevation = Config.BALL_RADIUS * Config.WORLD_SCALE
+	previous_elevation = elevation
+	vertical_velocity = 0.0
 	velocity = Vector2.ZERO
 	remaining = 0.0
 	resting_time = 0.0
 	_clear_pointer()
 	state = State.READY
+	if motion_adapter != null:
+		motion_adapter.reset(self)
+		previous_elevation = elevation
 
 
 func _capture() -> void:
@@ -213,10 +224,15 @@ func _begin_return() -> void:
 
 func _finish_transition() -> void:
 	if state == State.RETURNING:
-		position = previous_position if _valid_position(previous_position) else current_course()["start"]
+		var previous_is_safe := _valid_position(previous_position, previous_elevation)
+		position = previous_position if previous_is_safe else current_course()["start"]
 		previous_position = position
 		velocity = Vector2.ZERO
 		state = State.READY
+		elevation = previous_elevation if previous_is_safe else Config.BALL_RADIUS * Config.WORLD_SCALE
+		vertical_velocity = 0.0
+		if motion_adapter != null:
+			motion_adapter.reset(self)
 	elif state == State.CAPTURED:
 		if course_index + 1 >= Courses.ALL.size():
 			state = State.RESULT
@@ -226,6 +242,9 @@ func _finish_transition() -> void:
 
 
 func _validate_moving_position() -> bool:
+	if motion_adapter != null:
+		motion_adapter.step(self, 0.0)
+		return state == State.MOVING
 	if not velocity.is_finite() or not _valid_position(position):
 		_begin_return()
 		return false
@@ -240,7 +259,9 @@ func _can_capture() -> bool:
 	return position.distance_to(hole) <= Config.CAPTURE_RADIUS + EPSILON and velocity.length() <= Config.CAPTURE_SPEED + EPSILON
 
 
-func _valid_position(point: Vector2) -> bool:
+func _valid_position(point: Vector2, center_height: float = NAN) -> bool:
+	if motion_adapter != null:
+		return motion_adapter.is_safe_position(point, elevation if is_nan(center_height) else center_height)
 	if not point.is_finite():
 		return false
 	var bounds: Rect2 = current_course()["bounds"]
@@ -262,6 +283,9 @@ static func _rect_contains_closed(rect: Rect2, point: Vector2) -> bool:
 
 
 func _update_motion(delta: float) -> void:
+	if motion_adapter != null:
+		motion_adapter.step(self, delta)
+		return
 	if not _validate_moving_position():
 		return
 	var time_left := delta

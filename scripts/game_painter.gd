@@ -51,10 +51,10 @@ func _background() -> void:
 func _menu(store, time: float) -> void:
 	_text("UM JOGO DE PRECISÃO", Vector2(100, 112), 18, CYAN)
 	_text("GameLab", Vector2(96, 191), 64, WHITE)
-	_text("Minigolfe", Vector2(96, 269), 74, WHITE)
+	_text("Minigolfe 3D", Vector2(96, 269), 62, WHITE)
 	_canvas.draw_line(Vector2(100, 304), Vector2(174, 304), CYAN, 4, true)
 	_menu_course(time)
-	_center("Três percursos. Um bom toque.", 757, 26, WHITE)
+	_center("Rampas, alturas e um bom toque.", 757, 24, WHITE)
 	_center("Toque perto da bola, puxe e solte para lançar.", 802, 22, MUTED)
 	_center("Puxe mais para aumentar a força.", 833, 21, MUTED)
 	_records(store, 976, 32, 20)
@@ -64,6 +64,14 @@ func _menu(store, time: float) -> void:
 
 func _menu_course(time: float) -> void:
 	_panel(Rect2(82, 348, 556, 342), Color("#0b121e"), Color("#243747"), 26, 2)
+	if _canvas.get("world_viewport") != null:
+		_text("MAPA 3D", Vector2(122, 423), 17, CYAN)
+		_text("Rampas", Vector2(122, 476), 27, WHITE)
+		_text("Alturas", Vector2(122, 524), 27, WHITE)
+		_text("Saltos", Vector2(122, 572), 27, WHITE)
+		_text("TRÊS PERCURSOS", Vector2(122, 649), 15, MUTED)
+		_canvas.draw_texture_rect(_canvas.world_viewport.get_texture(), Rect2(386, 360, 204, 310), false)
+		return
 	_panel(Rect2(96, 362, 528, 314), FIELD, EDGE, 17, 2)
 	for x in range(127, 624, 48):
 		_canvas.draw_line(Vector2(x, 379), Vector2(x, 659), _alpha(WHITE, 0.025), 1)
@@ -91,12 +99,15 @@ func _game(session, time: float) -> void:
 	_text(str(session.current_strokes), Vector2(313, 167), 27, WHITE, HORIZONTAL_ALIGNMENT_RIGHT)
 	_text("TOTAL", Vector2(380, 165), 16, MUTED)
 	_text(str(session.total()), Vector2(633, 167), 27, WHITE, HORIZONTAL_ALIGNMENT_RIGHT)
-	_field(course, time)
-	if session.state == Session.State.READY:
-		_touch_ring(session.position)
-	if session.state == Session.State.AIMING:
-		_aim(session, course.bounds)
-	_ball(session.position)
+	if _canvas.get("world_viewport") != null:
+		_canvas.draw_texture_rect(_canvas.world_viewport.get_texture(), Rect2(64, 200, 592, 900), false)
+	else:
+		_field(course, time)
+		if session.state == Session.State.READY:
+			_touch_ring(session.position)
+		if session.state == Session.State.AIMING:
+			_aim(session, course.bounds)
+		_ball(session.position)
 	match session.state:
 		Session.State.READY:
 			_center("Toque perto da bola e puxe", 1158, 23, WHITE)

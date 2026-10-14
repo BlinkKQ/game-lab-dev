@@ -17,6 +17,9 @@ const CAPTURE_RADIUS := 22.0
 const CAPTURE_SPEED := 150.0
 const CAPTURE_TIME := 0.7
 const RETURN_TIME := 0.35
+const WORLD_SCALE := 0.01
+const GRAVITY_3D := 9.8
+const RECORD_PATH_3D := "user://record_3d.json"
 
 const BACKGROUND := Color("101827")
 const FIELD := Color("183e35")

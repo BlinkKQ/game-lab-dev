@@ -18,8 +18,18 @@ func _run() -> void:
 	var records_tests = load("res://tests/test_records.gd").new()
 	records_tests.run(_check, temporary_directory)
 	if FileAccess.file_exists("res://tests/test_ui.gd"):
+		var checks_before_ui := checks
 		var ui_tests = load("res://tests/test_ui.gd").new()
 		await ui_tests.run(_check)
+		if checks - checks_before_ui < 20:
+			failures.append("Suíte de interface interrompida ou incompleta")
+	if FileAccess.file_exists("res://tests/test_3d.gd"):
+		var checks_before_3d := checks
+		var three_d_tests = load("res://tests/test_3d.gd").new()
+		await three_d_tests.run(_check)
+		print("3D nativo: %d verificações específicas." % (checks - checks_before_3d))
+		if checks - checks_before_3d < 20 or not three_d_tests.completed:
+			failures.append("Suíte 3D interrompida ou incompleta")
 	_remove_test_directory(temporary_directory)
 	print("\nGameLab: %d verificações; %d falhas." % [checks, failures.size()])
 	for failure in failures:

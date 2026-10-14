@@ -5,12 +5,17 @@ const Session = preload("res://scripts/golf_session.gd")
 const Records = preload("res://scripts/record_store.gd")
 const Painter = preload("res://scripts/game_painter.gd")
 const Config = preload("res://scripts/game_config.gd")
+const WorldScene = preload("res://scenes/course_3d.tscn")
+const Physics3D = preload("res://scripts/physics_3d.gd")
 const MOUSE_POINTER := -2
 
 var session = Session.new()
 var store
 var painter = Painter.new()
-var record_path: String = "user://record.json"
+var record_path: String = Config.RECORD_PATH_3D
+var use_3d: bool = true
+var world
+var world_viewport: SubViewport
 var ui_presses: Dictionary = {}
 var layout: Dictionary = {}
 var visual_time: float = 0.0
@@ -23,13 +28,28 @@ func _ready() -> void:
 		if argument.begins_with("--record-path="):
 			record_path = argument.trim_prefix("--record-path=")
 	store = Records.new(record_path)
+	if use_3d:
+		world_viewport = SubViewport.new()
+		world_viewport.name = "Mapa3D"
+		world_viewport.size = Vector2i(592, 900)
+		world_viewport.own_world_3d = true
+		world_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		add_child(world_viewport)
+		world = WorldScene.instantiate()
+		world_viewport.add_child(world)
+		world.setup(session)
+		session.motion_adapter = Physics3D.new(world)
 	initialized = true
 	_update_layout()
 	queue_redraw()
 
 
 func _physics_process(delta: float) -> void:
+	if world != null:
+		world.sync(session, visual_time)
 	session.update(delta)
+	if world != null:
+		world.sync(session, visual_time)
 	if session.state == Session.State.RESULT and not result_recorded:
 		result_recorded = true
 		store.complete_session(session.total())
@@ -39,6 +59,8 @@ func _process(delta: float) -> void:
 	if not session.is_paused():
 		visual_time += delta
 	_update_layout()
+	if world != null:
+		world.sync(session, visual_time)
 	queue_redraw()
 
 
@@ -91,6 +113,22 @@ func to_screen(logical_point: Vector2) -> Vector2:
 	return Vector2(layout["offset"]) + logical_point * float(layout["scale"])
 
 
+func game_to_ui(map_point: Vector2) -> Vector2:
+	if world == null:
+		return map_point
+	return Vector2(64, 200) + world.project_map(map_point, session.elevation)
+
+
+func game_to_screen(map_point: Vector2) -> Vector2:
+	return to_screen(game_to_ui(map_point))
+
+
+func _map_input(ui_point: Vector2) -> Vector2:
+	if world == null:
+		return ui_point
+	return world.unproject_map(ui_point - Vector2(64, 200), session.elevation)
+
+
 func buttons() -> Array[Dictionary]:
 	if session.pause_reasons.has("modal"):
 		return [
@@ -137,7 +175,7 @@ func _input(event: InputEvent) -> void:
 			pointer_up(to_logical(event.position), event.index)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventScreenDrag:
-		session.drag_aim(to_logical(event.position), event.index)
+		session.drag_aim(_map_input(to_logical(event.position)), event.index)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
@@ -146,7 +184,7 @@ func _input(event: InputEvent) -> void:
 			pointer_up(to_logical(event.position), MOUSE_POINTER)
 		get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion:
-		session.drag_aim(to_logical(event.position), MOUSE_POINTER)
+		session.drag_aim(_map_input(to_logical(event.position)), MOUSE_POINTER)
 
 
 func pointer_down(point: Vector2, pointer_id: int) -> void:
@@ -161,7 +199,7 @@ func pointer_down(point: Vector2, pointer_id: int) -> void:
 			else:
 				ui_presses[pointer_id] = button["id"]
 			return
-	session.begin_aim(point, pointer_id)
+	session.begin_aim(_map_input(point), pointer_id)
 
 
 func pointer_up(point: Vector2, pointer_id: int) -> void:
@@ -169,7 +207,7 @@ func pointer_up(point: Vector2, pointer_id: int) -> void:
 		ui_presses.erase(pointer_id)
 		return
 	if session.state == Session.State.AIMING and session.active_pointer == pointer_id:
-		session.release_aim(point, pointer_id)
+		session.release_aim(_map_input(point), pointer_id)
 		return
 	if not ui_presses.has(pointer_id):
 		return

@@ -1,14 +1,14 @@
 # GameLab Minigolfe — telas e interação
 
 **Fase:** 4 — protótipo construído.  
-**Fonte:** [GDD v0.2](GDD.md) e [MECANICAS.md](MECANICAS.md).  
-**Situação:** telas implementadas e inspecionadas em janela nativa Linux. Veja [VALIDACAO.md](VALIDACAO.md); testes no iPhone pendentes.
+**Fonte:** [GDD v0.3](GDD.md) e [conversão 3D](CONVERSAO_3D.md) e [MECANICAS.md](MECANICAS.md).  
+**Situação:** telas implementadas e inspecionadas em janela nativa Linux. Veja [VALIDACAO.md](VALIDACAO_3D.md); testes no iPhone pendentes.
 
-O jogo usa apresentação 2D superior e vertical, com três percursos offline. O iPhone é o primeiro alvo; mouse no computador permite desenvolver o mesmo fluxo. Não há contas, rede, ranking de outras pessoas ou publicação nesta fase.
+O jogo usa cenário 3D com câmera inclinada e interface vertical, com três percursos offline. O iPhone é o primeiro alvo; mouse no computador permite desenvolver o mesmo fluxo. Não há contas, rede, ranking de outras pessoas ou publicação nesta fase.
 
 ## 1. Apresentação e área segura
 
-Usar referência lógica de **720 × 1280**, escalando uniformemente o campo completo para caber na área segura. Preservar proporções e coordenadas dos mapas; adaptar o fundo ao espaço restante. Não cortar alvo, bola, textos ou botões essenciais, nem colocá-los sob recortes e áreas reservadas do sistema. Converter o toque para coordenadas lógicas antes de calcular a mira.
+Usar referência de interface **720 × 1280**, escalando-a uniformemente para a área segura. O cenário 3D é renderizado em viewport próprio com câmera ajustada ao terreno. Preservar proporções e coordenadas dos mapas; adaptar o fundo ao espaço restante. Não cortar alvo, bola, textos ou botões essenciais, nem colocá-los sob recortes e áreas reservadas do sistema. Converter o toque de tela para a interface e projetá-lo pela câmera no plano da altura atual da esfera antes de calcular a mira.
 
 | Elemento | Apresentação inicial |
 | --- | --- |
@@ -68,7 +68,7 @@ Abrir a confirmação cancela a mira e congela física e temporizadores. Ao cont
 
 ## 5. Retorno e conclusão do buraco
 
-**Fora de jogo:** mostrar uma indicação breve de retorno e restaurar a posição anterior ao último lançamento. Manter a tacada já contada, sem penalidade adicional. Retomar com velocidade zero e mira limpa. A duração inicial desse feedback é 0,35 s.
+**Fora de jogo:** ao cair na água, mostrar uma indicação breve de retorno e restaurar a posição e altura anterior ao último lançamento. Manter a tacada já contada, sem penalidade adicional. Retomar com velocidade zero e mira limpa. A duração inicial desse feedback é 0,35 s.
 
 **Captura:** mostrar “Buraco concluído” e a quantidade de tacadas daquele buraco por aproximadamente **0,7 s**. O valor vem de uma cópia registrada na captura, mesmo após zerar o contador atual. No mesmo instante da captura, o resultado passa à lista e o contador atual vira zero: o total permanece correto durante todo o feedback.
 

@@ -1,6 +1,6 @@
-# GameLab Minigolfe
+# GameLab Minigolfe 3D
 
-Protótipo jogável em **Godot 4.6.3 e GDScript**, com visão superior 2D e três percursos originais. Toque perto da bola, puxe para definir direção e força e solte para lançar. O objetivo é concluir com o menor total de tacadas.
+Protótipo jogável em **Godot 4.6.3 e GDScript**, com cenário 3D, câmera inclinada e três percursos com rampas, alturas e pequenos saltos. Toque perto da bola, puxe para definir direção e força e solte para lançar. O objetivo é concluir com o menor total de tacadas.
 
 Inclui menu, controle por mouse/toque, mira e potência, colisões e rebotes, retorno de área fora de jogo, resultado, repetição, confirmação de abandono e recorde local. A partida funciona offline. A distribuição permanece privada.
 
@@ -29,7 +29,9 @@ $godot = 'C:\Ferramentas\Godot\Godot_v4.6.3-stable_win64_console.exe'
 
 Adapte o caminho do executável à sua instalação. Os arquivos temporários de teste usam o diretório de cache informado pela engine, sem exigir `/tmp`. A execução desta entrega foi validada em Linux; Windows e macOS ainda não foram executados.
 
-O jogo salva apenas o melhor total em `user://record.json`. Um recorde não salvo é identificado na interface; falhas preservam o arquivo anterior. Arquivos com versão desconhecida permanecem intactos. Fechar descarta a sessão em andamento e os resultados apenas em memória.
+O jogo salva apenas o melhor total em `user://record_3d.json`. Um recorde não salvo é identificado na interface; falhas preservam o arquivo anterior. Arquivos com versão desconhecida permanecem intactos. Fechar descarta a sessão em andamento e os resultados apenas em memória.
+
+O recorde do protótipo plano permanece no arquivo anterior; os resultados dos mapas com alturas são guardados separadamente. Os saltos acontecem ao sair das rampas com força suficiente, sem botão adicional.
 
 ## Controles
 
@@ -45,7 +47,7 @@ sh scripts/dev.sh test
 sh scripts/dev.sh build
 ```
 
-A suíte executa **229 verificações** de entrada na cena real, pontuação, física, pausas, JSON e falhas de gravação. Inclui uma regressão para impedir tacada involuntária ao redimensionar a janela durante a mira. Usa registros temporários isolados e retorna código diferente de zero em caso de falha.
+A suíte executa **260 verificações** (229 regressões anteriores e 31 verificações específicas de 3D) de entrada na cena real, pontuação, física, pausas, JSON e falhas de gravação. Inclui uma regressão para impedir tacada involuntária ao redimensionar a janela durante a mira. Usa registros temporários isolados e retorna código diferente de zero em caso de falha.
 
 O build produz `builds/gamelab.pck`, sem testes ou documentação. É um pacote que requer Godot 4.6.3, sem executável independente. Para jogá-lo:
 
@@ -64,7 +66,7 @@ sh scripts/cloud-display.sh
 DISPLAY=:99 XAUTHORITY=/workspace/.runtime/xvfb/Xauthority LIBGL_ALWAYS_SOFTWARE=1 sh scripts/dev.sh capture
 ```
 
-O teste controla a cena por eventos de mouse, joga os três percursos, confirma o recorde, grava oito imagens em `.runtime/captures/` e encerra. Em um computador com display, basta `sh scripts/dev.sh capture`.
+O teste controla o cenário 3D por eventos de mouse, joga os três percursos, confirma o recorde, grava oito imagens em `.runtime/captures/` e encerra. Em um computador com display, basta `sh scripts/dev.sh capture`.
 
 Para manter o jogo aberto no display virtual, use os mesmos prefixos com `sh scripts/dev.sh run`. Display e jogo precisam ser reiniciados em outra tarefa; não dependem de servidor web.
 
@@ -72,14 +74,14 @@ Para manter o jogo aberto no display virtual, use os mesmos prefixos com `sh scr
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| [GDD v0.2](docs/GDD.md) | Escopo, regras, mapas e parâmetros |
+| [GDD v0.3](docs/GDD.md) e [conversão 3D](docs/CONVERSAO_3D.md) | Escopo, regras, mapas e parâmetros |
 | [Mecânicas](docs/MECANICAS.md) e [telas](docs/TELAS.md) | Comportamento e interação |
-| [Critérios](docs/CRITERIOS_ACEITACAO.md) | AC-01 a AC-30 e métodos por plataforma |
-| [Validação](docs/VALIDACAO.md) | Evidências, comandos e limitações |
+| [Critérios](docs/CRITERIOS_ACEITACAO.md) | AC-01 a AC-37 e métodos por plataforma |
+| [Validação 3D](docs/VALIDACAO_3D.md) | Evidências, comandos e limitações da versão atual |
 | [Roadmap](docs/ROADMAP.md) | Avaliação e teste privado no iPhone |
 | [Configuração](scripts/game_config.gd) e [mapas](scripts/courses.gd) | Parâmetros centralizados e percursos como dados |
-| [Sessão](scripts/golf_session.gd) | Estados, física contínua e pontuação |
-| [Interface](scripts/main.gd) e [desenho](scripts/game_painter.gd) | Cena nativa, área segura e arte original |
+| [Sessão](scripts/golf_session.gd) e [física 3D](scripts/physics_3d.gd) | Estados, gravidade, colisões nativas e pontuação |
+| [Cenário 3D](scripts/course_view_3d.gd) e [interface](scripts/main.gd) | Terrenos, câmera, bola e interface sobre o cenário |
 | [Recorde](scripts/record_store.gd) | Validação e substituição atômica do arquivo |
 
 Usar o checkout existente em `/workspace/game-lab-dev` nas tarefas em nuvem. Cada tarefa já é isolada; não criar worktree sem solicitação explícita.
@@ -90,4 +92,4 @@ O fluxo principal e o PCK foram verificados em Linux/Godot 4.6.3. A suíte tamb�
 
 **Pendentes:** avaliação humana da jogabilidade, calibração e testes no iPhone real de toque, área segura, suspensão, desempenho e persistência. A exportação iOS requer macOS/Xcode, templates e assinatura; Linux não comprova funcionamento no aparelho.
 
-Multiplayer, bots, contas, monetização, 3D e Android ficam fora do MVP. Som e arte final podem ser refinados após avaliar o controle.
+Multiplayer, bots, contas, monetização e Android ficam fora do MVP. Som e arte final podem ser refinados após avaliar o controle.

@@ -1,9 +1,9 @@
 # GameLab Minigolfe — critérios de aceitação
 
-**Versão:** 0.2 · 14/10/2026  
+**Versão:** 0.3 · 14/10/2026  
 **Fase:** 4 — protótipo construído  
-**Fonte normativa:** GDD v0.2 deste pacote, com os esclarecimentos da revisão do GDD v0.1.  
-**Situação:** validação parcial em engine/Linux; aceite no iPhone e avaliação humana pendentes. Veja [VALIDACAO.md](VALIDACAO.md).
+**Fonte normativa:** GDD v0.3 e conversão 3D deste pacote, com os esclarecimentos da revisão do GDD v0.1.  
+**Situação:** validação parcial em engine/Linux; aceite no iPhone e avaliação humana pendentes. Veja [VALIDACAO.md](VALIDACAO_3D.md).
 
 Este documento preserva os identificadores AC-01 a AC-22 do GDD e acrescenta AC-23 a AC-30. Define casos, dados e evidências para o futuro projeto Godot 4/GDScript. O projeto e a suíte executável existem, com resultados registrados no relatório. A validação no iPhone permanece pendente. As verificações matemáticas feitas na revisão não aprovam nenhum critério de jogabilidade.
 
@@ -36,7 +36,7 @@ E, D e I indicam métodos planejados, não execuções concluídas. As variantes
 | AC-09 | Esperar a bola parar | Liberar a mira sem velocidade residual | E, D, I | Parcial — ver relatório |
 | AC-10 | Passar pelo alvo acima da velocidade de captura | Não concluir o buraco naquele instante | E, D, I | Parcial — ver relatório |
 | AC-11 | Entrar no alvo em velocidade válida | Capturar, contar o resultado uma vez e bloquear novas tacadas | E, D, I | Parcial — ver relatório |
-| AC-12 | Entrar na área fora de jogo | Retornar à posição anterior, com velocidade zero e sem tacada adicional | E, D, I | Parcial — ver relatório |
+| AC-12 | Cair na água do percurso 03 | Retornar à posição anterior, com velocidade zero e sem tacada adicional | E, D, I | Parcial — ver relatório |
 | AC-13 | Concluir os mapas 01, 02 e 03 | Avançar na ordem e abrir o resultado somente após o terceiro | E, D, I | Parcial — ver relatório |
 | AC-14 | Registrar resultados 3, 4 e 5 em um teste de pontuação | Mostrar total 12 | E, D | Parcial — ver relatório |
 | AC-15 | Repetir uma sessão ou abandoná-la | Zerar a sessão seguinte e preservar o melhor total já salvo | E, D, I | Parcial — ver relatório |
@@ -55,6 +55,13 @@ E, D e I indicam métodos planejados, não execuções concluídas. As variantes
 | AC-28 | Validar números JSON e fazer ida e volta do registro | Aceitar `null` ou número matematicamente integral de pelo menos 3; rejeitar booleanos, frações e valores menores; preservar versão desconhecida | E, D, I | Parcial — ver relatório |
 | AC-29 | Colidir obliquamente e em cantos na velocidade máxima | Não atravessar barreiras; conservar componente tangencial e aplicar restituição 0,78 apenas à normal de cada impacto | E, D, I | Parcial — ver relatório |
 | AC-30 | Escapar dos limites e retornar com posição anterior inválida | Recuperar na posição inicial válida, zerar velocidade e mira, sem tacada ou penalidade adicional | E, D | Parcial — ver relatório |
+| AC-31 | Cenário, esfera e colisões 3D | Corpos e pisos nativos, parede na velocidade máxima sem atravessamento | E, D, I | Parcial — ver relatório |
+| AC-32 | Controle projetado pela câmera em diferentes alturas | Mouse/toque iniciam mira e reproduzem direção e potência sem deslocar a bola | E, D, I | Parcial — ver relatório |
+| AC-33 | Gravidade, aterrissagem e repouso apoiado | Esfera cai até piso real; ápice não libera nova tacada | E, D, I | Parcial — ver relatório |
+| AC-34 | Subida para o terraço do mapa 02 | Ganhar altura e repousar no nível de 0,60 m | E, D, I | Parcial — ver relatório |
+| AC-35 | Salto automático sobre o vão | Rampa conserva movimento vertical; cruzar água no ar e aterrissar | E, D, I | Parcial — ver relatório |
+| AC-36 | Queda na água e retorno em altura | Retornar à pose segura sem tacada adicional, incluindo borda elevada | E, D, I | Parcial — ver relatório |
+| AC-37 | Apoio sobre obstáculos e pausa aérea | Pousar no topo sem travar; mirar mantendo altura; pausa congela corpo e velocidade | E, D, I | Parcial — ver relatório |
 
 ## 3. Preparação dos cenários
 
@@ -119,7 +126,7 @@ Nova sessão começa no mapa 01 com resultados vazios e contador zero. Abandono 
 
 ### AC-12 e AC-30
 
-Testar entrada do centro da bola na região fora de jogo do mapa 03 e fuga da região válida de cada mapa. A posição de retorno é a guardada imediatamente antes do lançamento; a tacada lançada permanece contada. A recuperação termina com velocidade zero e sem mira ativa, sem acrescentar penalidade.
+Testar queda da esfera na água do mapa 03, permitindo cruzar o vão no ar e fuga da região válida de cada mapa. A posição de retorno é a guardada imediatamente antes do lançamento; a tacada lançada permanece contada. A recuperação termina com velocidade zero e sem mira ativa, sem acrescentar penalidade.
 
 Repetir com posição anterior fora da região válida, dentro de obstáculo ou da área fora de jogo e com coordenadas não finitas, como `NaN`/infinito, se o runtime permitir preparar esses dados. A recuperação usa a posição inicial válida do mapa. Eventos repetidos durante o retorno não somam tacadas nem iniciam retornos simultâneos. Validar a recuperação da posição antes de permitir uma nova mira.
 

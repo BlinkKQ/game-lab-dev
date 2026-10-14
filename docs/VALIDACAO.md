@@ -1,5 +1,7 @@
 # Validação do protótipo — Linux
 
+**Histórico da versão plana 0.1.1.** Para o projeto atual com rampas e alturas, consulte [VALIDACAO_3D.md](VALIDACAO_3D.md).
+
 **Data:** 14/10/2026. **Engine:** Godot 4.6.3 estável oficial. **Projeto:** GameLab Minigolfe 0.1.1. **Alvo executado:** Linux x86_64; janela nativa 432 × 768 com renderizador Compatibility/Mesa llvmpipe. A execução gráfica usou Xvfb autenticado, sem porta TCP.
 
 As evidências correspondem à versão 0.1.1 deste checkout e ao PCK gerado com ela. Esta validação não representa publicação do jogo, exportação iOS ou aceite no aparelho.
@@ -83,9 +85,9 @@ Os caminhos de teste passaram a usar o cache da engine e o README inclui instru�
 
 As imagens foram geradas pelo viewport real, durante o teste do fluxo:
 
-- [Menu](images/menu.png)
-- [Percurso 03](images/partida.png)
-- [Resultado](images/resultado.png)
+- [Menu da versão plana](https://github.com/BlinkKQ/game-lab-dev/blob/a34a6e7fda888f1accf83204f741da7398a459d2/docs/images/menu.png)
+- [Percurso 03 da versão plana](https://github.com/BlinkKQ/game-lab-dev/blob/a34a6e7fda888f1accf83204f741da7398a459d2/docs/images/partida.png)
+- [Resultado da versão plana](https://github.com/BlinkKQ/game-lab-dev/blob/a34a6e7fda888f1accf83204f741da7398a459d2/docs/images/resultado.png)
 
 ## Escolhas da implementação
 
