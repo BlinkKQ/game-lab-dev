@@ -66,8 +66,13 @@ func _run() -> void:
 	var store_reload = load("res://scripts/record_store.gd").new(record)
 	_expect(store_reload.persisted_best == app.session.total(), "Recorde 3D relido do arquivo")
 	print("Renderização 3D: 8 capturas, resultados %s, %d falhas." % [str(app.session.results), failures.size()])
+	app.audio_feedback.set_enabled(false)
+	await process_frame
 	app.queue_free()
 	await process_frame
+	# Freeing the players also queues mixer releases. Finish those commands
+	# before this short-lived graphical harness exits the engine.
+	await create_timer(0.15).timeout
 	if FileAccess.file_exists(record):
 		DirAccess.remove_absolute(record)
 	for failure in failures:
@@ -75,6 +80,8 @@ func _run() -> void:
 	quit(0 if failures.is_empty() else 1)
 
 func _snapshot(app, name: String) -> void:
+	if app.camera_controller != null:
+		app.camera_controller.snap_for_course(app.session)
 	app.queue_redraw()
 	await process_frame
 	await RenderingServer.frame_post_draw

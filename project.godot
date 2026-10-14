@@ -3,10 +3,10 @@ config_version=5
 
 [application]
 config/name="GameLab Minigolfe 3D"
-config/version="0.2.0"
+config/version="0.3.0"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.6", "GL Compatibility")
-config/description="Minigolfe 3D offline, com três percursos, rampas e pequenos saltos."
+config/description="Minigolfe 3D offline com cenários de bosque, terraços e lagoa, câmera próxima, rampas e saltos."
 config/use_custom_user_dir=true
 config/custom_user_dir_name="GameLab Minigolfe"
 

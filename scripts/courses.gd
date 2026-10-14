@@ -5,7 +5,7 @@ extends RefCounted
 ## the inner surfaces of the four external walls.
 const ALL: Array = [
 	{
-		"name": "Linha livre",
+		"name": "Bosque Sereno",
 		"start": Vector2(360.0, 990.0),
 		"hole": Vector2(360.0, 260.0),
 		"bounds": Rect2(64.0, 200.0, 592.0, 900.0),
@@ -13,7 +13,7 @@ const ALL: Array = [
 		"hazard": Rect2(),
 	},
 	{
-		"name": "Volta pela lateral",
+		"name": "Terraços do Sol",
 		"start": Vector2(260.0, 990.0),
 		"hole": Vector2(260.0, 280.0),
 		"bounds": Rect2(64.0, 200.0, 592.0, 900.0),
@@ -21,7 +21,7 @@ const ALL: Array = [
 		"hazard": Rect2(),
 	},
 	{
-		"name": "Passagem estreita",
+		"name": "Travessia Azul",
 		"start": Vector2(360.0, 990.0),
 		"hole": Vector2(360.0, 280.0),
 		"bounds": Rect2(64.0, 200.0, 592.0, 900.0),

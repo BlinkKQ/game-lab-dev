@@ -17,6 +17,11 @@ const FALL_DEPTH := -1.5
 var view: Node3D
 var grounded := false
 var ground_normal := Vector3.UP
+# Presentation-only contact feedback. Each step has a new sequence, so a
+# listener can consume its strongest contacts once without altering motion.
+var feedback_sequence := 0
+var feedback_wall_impact := 0.0
+var feedback_landing_impact := 0.0
 var _last_course := -1
 var _last_state := -1
 var _last_position := Vector2(INF, INF)
@@ -30,6 +35,7 @@ func _init(course_view: Node3D) -> void:
 
 
 func reset(session) -> void:
+	_clear_feedback()
 	var body: CharacterBody3D = view.ball
 	_bounds = session.current_course()["bounds"]
 	_hazard = session.current_course()["hazard"]
@@ -67,6 +73,7 @@ func is_safe_position(point: Vector2, elevation: float) -> bool:
 
 
 func step(session, delta: float) -> void:
+	_clear_feedback()
 	var body: CharacterBody3D = view.ball
 	if session.state != session.State.MOVING:
 		_last_state = session.state
@@ -135,6 +142,7 @@ func step(session, delta: float) -> void:
 
 func _move_sphere(body: CharacterBody3D, delta: float) -> void:
 	var remaining_time := delta
+	var airborne := not grounded
 	for _contact in MAX_CONTACTS:
 		if remaining_time <= 0.000001 or body.velocity.length_squared() <= 0.000000001:
 			break
@@ -146,15 +154,25 @@ func _move_sphere(body: CharacterBody3D, delta: float) -> void:
 		remaining_time *= 1.0 - travelled_fraction
 		var normal := hit.get_normal()
 		if normal.y >= MIN_FLOOR_NORMAL:
+			if airborne:
+				feedback_landing_impact = maxf(feedback_landing_impact, -body.velocity.dot(normal))
+				airborne = false
 			# Landing and floor contacts slide; there is no artificial bounce.
 			body.velocity = body.velocity.slide(normal)
 		else:
 			var normal_speed := body.velocity.dot(normal)
 			if normal_speed < 0.0:
+				feedback_wall_impact = maxf(feedback_wall_impact, -normal_speed)
 				body.velocity -= normal * ((1.0 + Config.RESTITUTION) * normal_speed)
 		# Separate by a microscopic distance so the next sweep can use the
 		# remaining time rather than repeatedly encountering the same contact.
 		body.global_position += normal * 0.00001
+
+
+func _clear_feedback() -> void:
+	feedback_sequence += 1
+	feedback_wall_impact = 0.0
+	feedback_landing_impact = 0.0
 
 
 func _support(body: CharacterBody3D, velocity: Vector3) -> Dictionary:

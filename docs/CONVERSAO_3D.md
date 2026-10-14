@@ -1,6 +1,6 @@
 # GameLab Minigolfe 3D — revisão de escopo
 
-**Versão do projeto:** 0.2.0. **Engine:** Godot 4.6.3. Esta revisão atende ao pedido de mapa 3D com rampas, alturas e pequenos saltos. O jogo continua individual, offline, vertical e com três percursos em ordem fixa.
+**Versão do projeto:** 0.3.0. **Engine:** Godot 4.6.3. Esta revisão atende ao pedido de mapa 3D com rampas, alturas e pequenos saltos. O jogo continua individual, offline, vertical e com três percursos em ordem fixa.
 
 ## O que mudou
 
@@ -12,15 +12,15 @@ As coordenadas dos mapas anteriores são uma grade de navegação. Cada 100 unid
 
 | Percurso | Terreno 3D | Caminho disponível |
 | --- | --- | --- |
-| 01 — Linha livre | Piso principal plano. Rampa opcional em x480–620/y520–740 sobe 0,30 m; patamar em y400–520 | A rota central até o buraco continua livre; a rampa permite experimentar altura |
-| 02 — Volta pela lateral | Piso inferior até y700; rampa em toda a largura de y700 a y450; terraço superior de 0,60 m até y200. O buraco está no terraço | Contornar a barreira pela direita, subir e ajustar a tacada no nível superior |
-| 03 — Passagem estreita | Vão com água em x520–656/y460–640. Rampa em x520–646/y640–740 sobe 0,34 m e termina na borda | Rota esquerda segura ou tentativa de salto pela direita; ambos usam o mesmo alvo |
+| 01 — Bosque Sereno | Piso principal plano. Rampa opcional em x480–620/y520–740 sobe 0,30 m; patamar em y400–520 | A rota central até o buraco continua livre; a rampa permite experimentar altura |
+| 02 — Terraços do Sol | Piso inferior até y700; rampa em toda a largura de y700 a y450; terraço superior de 0,60 m até y200. O buraco está no terraço | Contornar a barreira pela direita, subir e ajustar a tacada no nível superior |
+| 03 — Travessia Azul | Vão com água em x520–656/y460–640. Rampa em x520–646/y640–740 sobe 0,34 m e termina na borda | Rota esquerda segura ou tentativa de salto pela direita; ambos usam o mesmo alvo |
 
 Os pisos e seus lados têm colisão. A água é uma área de retorno, sem transporte ou natação. As paredes externas acompanham a altura do terreno para cercar a rampa e o terraço.
 
 ## Movimento e controle
 
-O gesto continua sendo tocar perto da bola, puxar e soltar. A câmera é ortográfica e inclinada. A posição do toque é projetada para o plano da altura atual da bola; isso mantém o controle correto ao iniciar uma mira no terraço ou em uma rampa. Redimensionar a janela cancela um gesto em curso.
+O gesto continua sendo tocar perto da bola, puxar e soltar. A câmera de jogo usa perspectiva e segue a bola; o botão de visão geral mostra o campo inteiro com projeção ortográfica inclinada. Durante a mira e a pausa, a câmera fica imóvel. A posição do toque é projetada para o plano da altura atual da bola; isso mantém o controle correto ao iniciar uma mira no terraço ou em uma rampa. Redimensionar a janela cancela um gesto em curso.
 
 - Velocidade horizontal inicial máxima: 10 m/s, equivalente às 1.000 unidades/s anteriores.
 - Frenagem horizontal no piso: 5 m/s². O contato e a gravidade também afetam o movimento nas rampas.

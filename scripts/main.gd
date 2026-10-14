@@ -7,6 +7,8 @@ const Painter = preload("res://scripts/game_painter.gd")
 const Config = preload("res://scripts/game_config.gd")
 const WorldScene = preload("res://scenes/course_3d.tscn")
 const Physics3D = preload("res://scripts/physics_3d.gd")
+const CourseCamera = preload("res://scripts/course_camera.gd")
+const GameAudio = preload("res://scripts/game_audio.gd")
 const MOUSE_POINTER := -2
 
 var session = Session.new()
@@ -16,6 +18,8 @@ var record_path: String = Config.RECORD_PATH_3D
 var use_3d: bool = true
 var world
 var world_viewport: SubViewport
+var camera_controller
+var audio_feedback
 var ui_presses: Dictionary = {}
 var layout: Dictionary = {}
 var visual_time: float = 0.0
@@ -39,6 +43,12 @@ func _ready() -> void:
 		world_viewport.add_child(world)
 		world.setup(session)
 		session.motion_adapter = Physics3D.new(world)
+		camera_controller = CourseCamera.new()
+		camera_controller.setup(world, session)
+	audio_feedback = GameAudio.new()
+	audio_feedback.name = "GameAudio"
+	add_child(audio_feedback)
+	audio_feedback.setup(session)
 	initialized = true
 	_update_layout()
 	queue_redraw()
@@ -50,6 +60,8 @@ func _physics_process(delta: float) -> void:
 	session.update(delta)
 	if world != null:
 		world.sync(session, visual_time)
+	if audio_feedback != null:
+		audio_feedback.update(session)
 	if session.state == Session.State.RESULT and not result_recorded:
 		result_recorded = true
 		store.complete_session(session.total())
@@ -61,6 +73,8 @@ func _process(delta: float) -> void:
 	_update_layout()
 	if world != null:
 		world.sync(session, visual_time)
+	if camera_controller != null:
+		camera_controller.update(session, delta, visual_time)
 	queue_redraw()
 
 
@@ -136,14 +150,23 @@ func buttons() -> Array[Dictionary]:
 			_button("abandon", Rect2(112, 734, 496, 62), "Voltar ao menu", "secondary")
 		]
 	if session.state == Session.State.MENU:
-		return [_button("play", Rect2(100, 870, 520, 76), "Jogar", "primary")]
+		return [_button("play", Rect2(100, 870, 520, 76), "Jogar", "primary"), _sound_button()]
 	if session.state == Session.State.RESULT:
 		return [
 			_button("play", Rect2(100, 960, 520, 76), "Jogar novamente", "primary"),
-			_button("home", Rect2(100, 1055, 520, 70), "Menu", "secondary")
+			_button("home", Rect2(100, 1055, 520, 70), "Menu", "secondary"),
+			_sound_button()
 		]
 	var allowed: bool = session.state in [Session.State.READY, Session.State.AIMING, Session.State.MOVING]
-	return [_button("menu", Rect2(548, 44, 108, 58), "Menu", "quiet", allowed)]
+	var controls: Array[Dictionary] = [_button("menu", Rect2(548, 44, 108, 58), "Menu", "quiet", allowed), _sound_button()]
+	if camera_controller != null:
+		controls.append(_button("camera", Rect2(390, 44, 142, 58), "Seguir bola" if camera_controller.overview else "Visão geral", "quiet", allowed))
+	return controls
+
+
+func _sound_button() -> Dictionary:
+	var sound_enabled: bool = audio_feedback != null and audio_feedback.enabled
+	return _button("sound", Rect2(548, 1235, 108, 32), "Som: sim" if sound_enabled else "Som: não", "quiet")
 
 
 func _button(id: String, rect: Rect2, text: String, style: String, enabled: bool = true) -> Dictionary:
@@ -194,8 +217,8 @@ func pointer_down(point: Vector2, pointer_id: int) -> void:
 		return
 	for button in buttons():
 		if button["enabled"] and Rect2(button["rect"]).has_point(point):
-			if button["id"] == "menu":
-				_action("menu")
+			if button["id"] in ["menu", "camera", "sound"]:
+				_action(str(button["id"]))
 			else:
 				ui_presses[pointer_id] = button["id"]
 			return
@@ -228,16 +251,30 @@ func _application_paused() -> bool:
 
 func _action(id: String) -> void:
 	ui_presses.clear()
+	if audio_feedback != null and id != "sound":
+		audio_feedback.play_ui_click()
 	match id:
 		"play":
 			session.start_session()
 			result_recorded = false
+			if world != null:
+				world.sync(session, visual_time)
+			if camera_controller != null:
+				camera_controller.snap_for_course(session)
 		"menu":
 			session.request_menu()
 		"continue":
 			session.continue_session()
 		"abandon", "home":
 			session.abandon_session()
+		"camera":
+			session.cancel_aim()
+			if camera_controller != null:
+				camera_controller.set_overview(not camera_controller.overview)
+		"sound":
+			session.cancel_aim()
+			if audio_feedback != null:
+				audio_feedback.set_enabled(not audio_feedback.enabled)
 	queue_redraw()
 
 
@@ -262,4 +299,6 @@ func _notification(what: int) -> void:
 func set_application_pause(reason: String, paused: bool) -> void:
 	ui_presses.clear()
 	session.set_paused(reason, paused)
+	if audio_feedback != null:
+		audio_feedback.update(session)
 	queue_redraw()

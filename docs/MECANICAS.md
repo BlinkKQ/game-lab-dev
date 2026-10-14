@@ -1,7 +1,7 @@
 # GameLab Minigolfe — mecânicas
 
 **Fase:** 4 — protótipo construído.  
-**Fonte:** [GDD v0.3](GDD.md) e [conversão 3D](CONVERSAO_3D.md).  
+**Fonte:** [GDD v0.4](GDD.md) e [conversão 3D](CONVERSAO_3D.md).  
 **Situação:** comportamento implementado e verificado em Linux. Veja [VALIDACAO.md](VALIDACAO_3D.md); aceite no iPhone pendente.
 
 O MVP é um minigolfe 3D com câmera inclinada, interface vertical, uma pessoa e três percursos em ordem fixa. A partida e o recorde local funcionam offline. Godot 4.6.3 e GDScript são as tecnologias da implementação. O primeiro alvo é o iPhone, com mouse no computador durante o desenvolvimento. A distribuição permanece privada até autorização explícita para publicar ou compartilhar.
@@ -109,9 +109,9 @@ Origem no canto superior esquerdo; `x` cresce para a direita e `y` para baixo. T
 
 | Mapa | Nome | Posição inicial | Buraco | Paredes internas | Fora de jogo |
 | --- | --- | --- | --- | --- | --- |
-| 01 | Linha livre | (360, 990) | (360, 260) | Nenhuma | Nenhum |
-| 02 | Volta pela lateral | (260, 990) | (260, 280) | (64, 550, 366, 28) | Nenhum |
-| 03 | Passagem estreita | (360, 990) | (360, 280) | (248, 650, 224, 28) e (64, 360, 136, 28) | (520, 460, 136, 180) |
+| 01 | Bosque Sereno | (360, 990) | (360, 260) | Nenhuma | Nenhum |
+| 02 | Terraços do Sol | (260, 990) | (260, 280) | (64, 550, 366, 28) | Nenhum |
+| 03 | Travessia Azul | (360, 990) | (360, 280) | (248, 650, 224, 28) e (64, 360, 136, 28) | (520, 460, 136, 180) |
 
 | Mapa | Rota de referência | Comprimentos dos segmentos |
 | --- | --- | --- |

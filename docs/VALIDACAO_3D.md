@@ -1,37 +1,32 @@
-# Validação 3D — versão 0.2.0
+# Validação 3D — versão 0.3.0
 
-**Data:** 14/10/2026. **Engine:** Godot 4.6.3. **Alvo:** Linux x86_64, modo headless e janela gráfica nativa, Compatibility/Mesa llvmpipe. Câmera ortográfica inclinada em viewport próprio; interface 432 × 768 no teste gráfico.
+**Data:** 14/10/2026. **Engine:** Godot 4.6.3. **Alvo:** Linux x86_64, headless e janela nativa com Compatibility/Mesa llvmpipe. Interface 432 × 768; cenário em viewport 592 × 900. Câmera de jogo em perspectiva e visão geral ortográfica.
 
 ## Resultados
 
 | Verificação | Resultado |
 | --- | --- |
-| Importação e suíte headless | 260 verificações, zero falhas |
-| Suíte em janela gráfica | 260 verificações, zero falhas |
-| Casos específicos de 3D | 31 verificações contra corpo, câmera e colisores reais |
-| Regressões anteriores | 229 verificações de regras, salvamento e interface; adaptador plano somente nos testes legados |
-| Partida por eventos de mouse projetados pela câmera | Três percursos concluídos em `[1, 5, 4]`, total 10, recorde gravado e relido |
-| Captura gráfica da interface e dos mapas | Oito PNGs, fluxo completo e zero falhas |
-| Suíte com criação de sockets bloqueada | 260 verificações, zero falhas; fluxo offline |
-| PCK iniciado fora do checkout | Partida 3D completa `[1, 5, 4]`, recorde relido e oito capturas, zero falhas |
+| Importação e suíte headless | 292 verificações, zero falhas |
+| Suíte em janela gráfica | 292 verificações, zero falhas |
+| Física e entrada nativas 3D | 31 verificações contra corpo, câmera e colisores reais |
+| Nova câmera, gestos e áudio | 32 verificações de interação, pausa, altura e silenciamento |
+| Regressões anteriores | 229 verificações de regras, salvamento e interface; adaptador plano apenas nos testes legados |
+| Partida por eventos reais de mouse | Três percursos em `[1, 5, 4]`, total 10; recorde gravado e relido |
+| Captura gráfica | Oito PNGs de menu, partida, mira, confirmação, captura, três temas e resultado; zero falhas |
+| Prévia animada | 89 quadros nativos; mira, câmera acompanhando a tacada e primeiro buraco concluído em uma tacada |
+| PCK iniciado fora do checkout | Três percursos, recorde relido e oito capturas; zero falhas |
 
-O runner também rejeita uma suíte 3D interrompida ou que não concluiu, em vez de considerar os testes anteriores como validação do cenário novo. A contagem acima corresponde aos casos efetivamente executados.
+O runner rejeita suítes 3D e de apresentação interrompidas ou que não concluíram. O total 10 é uma execução reproduzível, sem garantia de solução mínima.
 
-## O que foi exercitado em 3D
+## Casos de risco exercitados
 
-- Esfera cai pela gravidade e encontra o piso com colisão real.
-- Colisão com parede na velocidade inicial máxima, sem atravessamento.
-- Subida de rampa e repouso no terraço de 0,60 m.
-- Salto natural pela rampa, passagem aérea sobre a água e aterrissagem.
-- Passagem no ar sobre o buraco sem pontuação; captura após aterrissagem lenta.
-- Retorno após queda na água, restaurando posição e altura segura sem penalidade adicional.
-- Pouso no topo de um obstáculo, confirmação de repouso e mira preservando essa altura.
-- Retorno à borda elevada da rampa, embora sua projeção coincida com o limite da área de água.
-- Pausa preserva posição e velocidade do corpo, inclusive no ar.
-- Mouse e toque projetados na câmera, inclusive ao iniciar mira em altura.
-- Sessão completa com tacadas por entrada real e persistência do resultado.
+A suíte nativa continua cobrindo gravidade, colisão na velocidade máxima, subida de rampa, terraço elevado, salto natural sobre a água, aterrissagem, captura apenas com apoio e retorno a uma pose segura. Inclui pouso no topo de um obstáculo e retorno à borda elevada da rampa.
 
-Os dados injetados em casos específicos preparam cenários de teste; a sessão completa usa lançamentos e colisões reais, sem injetar a conclusão dos buracos. O total 10 é uma execução reproduzível, não um mínimo garantido.
+Os novos testes mantêm os mesmos pixels de um gesto enquanto o tempo passa: pose e lente da câmera ficam imóveis, preservando direção e potência. A câmera volta a seguir após a soltura e congela durante motivos sobrepostos de pausa. Alternar a visão com outro dedo invalida o gesto anterior; soltar dedos antigos não cria tacada nem nova troca. Mouse e toque também funcionam no patamar de 0,60 m.
+
+Os testes de áudio verificam indicação única de tacada, interrupção ao pausar, silêncio após desativar e retomada sem reproduzir eventos antigos. O driver Dummy verifica o fluxo e a síntese, sem comprovar como os sons ficam nos alto-falantes de um aparelho.
+
+O cenário decorativo usa malhas próprias sem colisores. A água recebe o tempo visual da sessão, que fica congelado na pausa. Plantas repetidas usam MultiMesh; mira, rastro e anéis usam pools com tamanho limitado.
 
 ## Comandos
 
@@ -39,25 +34,24 @@ Os dados injetados em casos específicos preparam cenários de teste; a sessão 
 sh scripts/dev.sh import
 sh scripts/dev.sh test
 sh scripts/cloud-display.sh
-DISPLAY=:99 XAUTHORITY=/workspace/.runtime/xvfb/Xauthority \
-  LIBGL_ALWAYS_SOFTWARE=1 sh scripts/dev.sh capture
+DISPLAY=:99 XAUTHORITY=/workspace/.runtime/xvfb/Xauthority LIBGL_ALWAYS_SOFTWARE=1 sh scripts/dev.sh capture
 sh scripts/dev.sh build
 ```
 
-O driver virtual informa que não suporta mudança de V-Sync. A renderização e as verificações concluíram; isso não mede desempenho no iPhone.
+O display virtual usa autenticação, TCP desativado e a extensão MIT-SHM desativada para permitir redimensionamento entre namespaces de IPC das tarefas. O driver informa que não suporta alterar V-Sync; isso não impediu os testes nem mede desempenho no iPhone.
 
-As capturas atuais estão em [menu](images/menu.png), [percurso 03](images/partida.png) e [resultado](images/resultado.png).
-
-Para testar o PCK sem incluir testes na entrega, o driver gráfico pode ser carregado externamente:
+Para verificar o PCK sem incluir testes no pacote:
 
 ```sh
-godot --main-pack builds/gamelab.pck --audio-driver Dummy \
-  --script /caminho/game-lab-dev/tests/capture.gd \
-  -- --driver-path=/caminho/game-lab-dev/tests/test_3d.gd
+godot --main-pack builds/gamelab.pck --audio-driver Dummy --script /caminho/game-lab-dev/tests/capture.gd -- --driver-path=/caminho/game-lab-dev/tests/test_3d.gd
 ```
 
-## Limites
+## Imagens e limites
 
-Os controles em aparelho, área segura real, suspensão iOS, desempenho, calibração e avaliação humana ainda exigem teste próprio. Não houve exportação iOS nesta revisão. Os records planos anteriores permanecem no arquivo anterior; esta versão usa `record_3d.json`.
+Veja [menu](images/menu.png), [bosque](images/bosque.png), [terraços](images/terracos.png), [lagoa](images/partida.png), [mira](images/mira.png), [resultado](images/resultado.png) e a [prévia animada](images/jogada.gif). A prévia foi capturada do jogo em execução e não possui áudio.
 
-O [relatório anterior](VALIDACAO.md) é histórico da versão plana. As regras e alturas atuais estão no [GDD](GDD.md) e na [conversão 3D](CONVERSAO_3D.md).
+As filmagens de referência e os seus limites estão em [REFERENCIAS_VISUAIS.md](REFERENCIAS_VISUAIS.md). A geometria jogável e os parâmetros físicos da versão 3D foram mantidos; esta revisão concentra-se em apresentação, câmera e efeitos.
+
+Avaliação humana, controles em iPhone, área segura real, suspensão iOS, desempenho e audição dos efeitos no aparelho continuam pendentes. Não houve exportação iOS. A sessão funciona offline e o recorde continua em `record_3d.json`; o arquivo do protótipo plano permanece preservado.
+
+O [relatório plano](VALIDACAO.md) é histórico. A conversão 3D anterior está no commit `63b441e` e na branch local `archive/3d-v0.2.0`.

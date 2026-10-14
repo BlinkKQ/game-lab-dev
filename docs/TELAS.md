@@ -1,14 +1,14 @@
 # GameLab Minigolfe — telas e interação
 
 **Fase:** 4 — protótipo construído.  
-**Fonte:** [GDD v0.3](GDD.md) e [conversão 3D](CONVERSAO_3D.md) e [MECANICAS.md](MECANICAS.md).  
+**Fonte:** [GDD v0.4](GDD.md) e [conversão 3D](CONVERSAO_3D.md) e [MECANICAS.md](MECANICAS.md).  
 **Situação:** telas implementadas e inspecionadas em janela nativa Linux. Veja [VALIDACAO.md](VALIDACAO_3D.md); testes no iPhone pendentes.
 
 O jogo usa cenário 3D com câmera inclinada e interface vertical, com três percursos offline. O iPhone é o primeiro alvo; mouse no computador permite desenvolver o mesmo fluxo. Não há contas, rede, ranking de outras pessoas ou publicação nesta fase.
 
 ## 1. Apresentação e área segura
 
-Usar referência de interface **720 × 1280**, escalando-a uniformemente para a área segura. O cenário 3D é renderizado em viewport próprio com câmera ajustada ao terreno. Preservar proporções e coordenadas dos mapas; adaptar o fundo ao espaço restante. Não cortar alvo, bola, textos ou botões essenciais, nem colocá-los sob recortes e áreas reservadas do sistema. Converter o toque de tela para a interface e projetá-lo pela câmera no plano da altura atual da esfera antes de calcular a mira.
+Usar referência de interface **720 × 1280**, escalando-a uniformemente para a área segura. O cenário 3D é renderizado em viewport próprio com câmera ajustada ao terreno. Preservar proporções e coordenadas dos mapas; adaptar o fundo ao espaço restante. Manter bola, textos e botões essenciais visíveis na câmera próxima. A visão geral permite inspecionar todo o percurso. Não colocar controles sob recortes e áreas reservadas do sistema. Converter o toque de tela para a interface e projetá-lo pela câmera no plano da altura atual da esfera antes de calcular a mira.
 
 | Elemento | Apresentação inicial |
 | --- | --- |
@@ -37,7 +37,7 @@ Voltar ao menu preserva o recorde salvo e o melhor total em memória, mas descar
 
 ## 3. Partida e mira
 
-Mostrar campo inteiro, bola, alvo, número do buraco **1/3, 2/3 ou 3/3**, tacadas do buraco atual, total acumulado e acesso ao menu. Os mapas seguem a ordem Linha livre, Volta pela lateral e Passagem estreita.
+Mostrar cenário 3D com câmera próxima à bola ou visão geral selecionada pelo jogador, alvo, número do buraco **1/3, 2/3 ou 3/3**, tacadas do buraco atual, total acumulado e acesso ao menu. Os mapas seguem a ordem Bosque Sereno, Terraços do Sol e Travessia Azul. Visão geral / Seguir bola alterna a câmera; durante a mira, ela fica imóvel. A troca cancela o gesto em curso sem lançar. O menu mostra uma prévia cênica própria.
 
 | Estado | Apresentação e entrada |
 | --- | --- |
@@ -98,7 +98,7 @@ Tratar os motivos de pausa separadamente. Se a confirmação de abandono estiver
 
 ## 8. Som e verificação
 
-O fluxo deve ser compreensível apenas pela apresentação visual. Sons próprios ou autorizados de lançamento, colisão e captura podem ser adicionados no polimento; limitar a frequência dos sons de colisão. Música, voz e controles de volume não bloqueiam a primeira avaliação. Não reutilizar áudio da referência.
+O fluxo permanece compreensível apenas pela apresentação visual. A versão 0.3.0 inclui sons sintetizados próprios de tacada, colisão, aterrissagem, captura, retorno e clique. Quatro vozes limitam a sobreposição; contatos pequenos não geram som. Som: sim / Som: não silencia os efeitos imediatamente. Pausa e perda de foco interrompem as vozes ativas. Música e voz permanecem fora desta revisão.
 
 Verificar o campo completo em proporções distintas, legibilidade, alinhamento do toque, acesso deliberado ao menu durante mira, contadores durante captura e avisos de gravação. Testar interrupções em mira, movimento, captura, retorno e confirmação de abandono, incluindo motivos simultâneos de pausa.
 

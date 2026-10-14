@@ -30,7 +30,17 @@ func _run() -> void:
 		print("3D nativo: %d verificações específicas." % (checks - checks_before_3d))
 		if checks - checks_before_3d < 20 or not three_d_tests.completed:
 			failures.append("Suíte 3D interrompida ou incompleta")
+	if FileAccess.file_exists("res://tests/test_presentation.gd"):
+		var checks_before_presentation := checks
+		var presentation_tests = load("res://tests/test_presentation.gd").new()
+		await presentation_tests.run(_check)
+		print("Apresentação e câmera: %d verificações específicas." % (checks - checks_before_presentation))
+		if checks - checks_before_presentation < 20 or not presentation_tests.completed:
+			failures.append("Suíte de apresentação interrompida ou incompleta")
 	_remove_test_directory(temporary_directory)
+	# Freed AudioStreamPlayers leave release commands for the mixer. Drain
+	# them before quitting this short-lived harness, including cold imports.
+	await create_timer(0.15).timeout
 	print("\nGameLab: %d verificações; %d falhas." % [checks, failures.size()])
 	for failure in failures:
 		printerr("FALHOU: ", failure)

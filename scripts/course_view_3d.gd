@@ -5,6 +5,7 @@ extends Node3D
 ## X/Z navigation grid; elevation, collisions and camera projection are 3D.
 const Session = preload("res://scripts/golf_session.gd")
 const Config = preload("res://scripts/game_config.gd")
+const Scenery = preload("res://scripts/scenery_garden.gd")
 const WORLD_SCALE := 0.01
 const MAP_CENTER := Vector2(360.0, 650.0)
 const BALL_RADIUS := 0.14
@@ -24,6 +25,19 @@ var _flag: Node3D
 var _last_position := Vector3.ZERO
 var _camera_fitted := false
 var _aim_cache := Vector4(INF, INF, INF, INF)
+var _scenery
+var _trail: Array[MeshInstance3D] = []
+var _trail_times: PackedFloat32Array = []
+var _trail_cursor := 0
+var _trail_previous := Vector3.ZERO
+var _capture_rings: Array[MeshInstance3D] = []
+var _capture_started := -1.0
+var _last_state := -1
+var _aim_segments: Array[MeshInstance3D] = []
+var _aim_dots: Array[MeshInstance3D] = []
+var _aim_pull: MeshInstance3D
+var _aim_handle: MeshInstance3D
+var _aim_material: StandardMaterial3D
 
 
 func _ready() -> void:
@@ -151,6 +165,9 @@ func sync(session, elapsed: float) -> void:
 	_update_aim(session)
 	if _flag != null:
 		_flag.rotation.y = sin(elapsed * 1.1) * 0.08
+	if _scenery != null:
+		_scenery.animate(elapsed)
+	_update_effects(session, elapsed)
 	if not _camera_fitted and is_inside_tree():
 		_fit_camera()
 
@@ -160,25 +177,34 @@ func _build_scene() -> void:
 		return
 	var environment := WorldEnvironment.new()
 	var settings := Environment.new()
-	settings.background_mode = Environment.BG_COLOR
-	settings.background_color = Color("101827")
+	settings.background_mode = Environment.BG_SKY
+	var sky := Sky.new()
+	var sky_material := ProceduralSkyMaterial.new()
+	sky_material.sky_top_color = Color("8bc5e7")
+	sky_material.sky_horizon_color = Color("e8edcf")
+	sky_material.ground_bottom_color = Color("738758")
+	sky_material.ground_horizon_color = Color("e8edcf")
+	sky_material.sky_curve = 0.18
+	sky_material.sky_energy_multiplier = 0.70
+	sky.sky_material = sky_material
+	settings.sky = sky
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	settings.ambient_light_color = Color("cbd8ec")
-	settings.ambient_light_energy = 0.62
+	settings.ambient_light_color = Color("d4e4c8")
+	settings.ambient_light_energy = 0.40
 	settings.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	environment.environment = settings
 	add_child(environment)
 	var sun := DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-58.0, -28.0, 0.0)
-	sun.light_color = Color("fff2d7")
-	sun.light_energy = 1.05
+	sun.rotation_degrees = Vector3(-47.0, -35.0, 0.0)
+	sun.light_color = Color("ffefd0")
+	sun.light_energy = 0.90
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 30.0
 	add_child(sun)
 	var fill := OmniLight3D.new()
 	fill.position = Vector3(-4.0, 5.0, 2.0)
-	fill.light_color = Color("75d4d0")
-	fill.light_energy = 0.7
+	fill.light_color = Color("c8e9d1")
+	fill.light_energy = 0.22
 	fill.omni_range = 14.0
 	add_child(fill)
 	camera = Camera3D.new()
@@ -230,6 +256,8 @@ func _build_scene() -> void:
 	_aim = Node3D.new()
 	_aim.name = "AimArrow3D"
 	add_child(_aim)
+	_build_aim_pool()
+	_build_effect_pool()
 
 
 func _build_course(index: int) -> void:
@@ -240,34 +268,45 @@ func _build_course(index: int) -> void:
 	_terrain = Node3D.new()
 	_terrain.name = "CourseGeometry3D"
 	add_child(_terrain)
+	_scenery = Scenery.new()
+	_terrain.add_child(_scenery)
+	_scenery.build(index)
 	var course: Dictionary = _session.current_course()
 	var bounds: Rect2 = course["bounds"]
-	_box(map_to_world(bounds.get_center(), -0.30), Vector3(bounds.size.x * WORLD_SCALE + 0.12, 0.38, bounds.size.y * WORLD_SCALE + 0.12), Color("203843"), _terrain)
+	var earth := Color("9a9b6a") if index == 0 else (Color("bd9a67") if index == 1 else Color("c5b68b"))
+	_box(map_to_world(bounds.get_center(), -0.30), Vector3(bounds.size.x * WORLD_SCALE + 0.12, 0.38, bounds.size.y * WORLD_SCALE + 0.12), earth, _terrain)
 	match index:
 		0:
-			_floor_patch(bounds, 0.0, 0.0, Color("286753"))
-			_floor_patch(Rect2(480, 520, 140, 220), 0.30, 0.0, Color("408773"))
-			_floor_patch(Rect2(480, 400, 140, 120), 0.30, 0.30, Color("408773"))
+			_floor_patch(bounds, 0.0, 0.0, Color("70a047"))
+			_floor_patch(Rect2(480, 520, 140, 220), 0.30, 0.0, Color("78a64d"))
+			_floor_patch(Rect2(480, 400, 140, 120), 0.30, 0.30, Color("78a64d"))
 		1:
-			_floor_patch(Rect2(64, 700, 592, 400), 0.0, 0.0, Color("286753"))
-			_floor_patch(Rect2(64, 450, 592, 250), 0.60, 0.0, Color("408773"))
-			_floor_patch(Rect2(64, 200, 592, 250), 0.60, 0.60, Color("347963"))
+			_floor_patch(Rect2(64, 700, 592, 400), 0.0, 0.0, Color("7fa348"))
+			_floor_patch(Rect2(64, 450, 592, 250), 0.60, 0.0, Color("87ab4f"))
+			_floor_patch(Rect2(64, 200, 592, 250), 0.60, 0.60, Color("7b9e48"))
 		2:
-			_floor_patch(Rect2(64, 640, 592, 460), 0.0, 0.0, Color("286753"))
-			_floor_patch(Rect2(64, 200, 592, 260), 0.0, 0.0, Color("286753"))
-			_floor_patch(Rect2(64, 460, 456, 180), 0.0, 0.0, Color("286753"))
-			_floor_patch(Rect2(520, 640, 126, 100), 0.34, 0.0, Color("408773"))
+			_floor_patch(Rect2(64, 640, 592, 460), 0.0, 0.0, Color("64a467"))
+			_floor_patch(Rect2(64, 200, 592, 260), 0.0, 0.0, Color("64a467"))
+			_floor_patch(Rect2(64, 460, 456, 180), 0.0, 0.0, Color("64a467"))
+			_floor_patch(Rect2(520, 640, 126, 100), 0.34, 0.0, Color("72b16d"))
 			_build_water(course["hazard"])
-	_build_lawn_lines(bounds)
 	_build_rails(bounds)
 	for wall: Rect2 in course["walls"]:
 		_wall(wall)
 	_build_hole(course["hole"])
 	var start: Vector2 = course["start"]
-	var start_mark := _disc(0.28, 0.012, Color("4c8f7a"), _terrain)
+	var start_mark := _disc(0.27, 0.006, Color("acc883"), _terrain)
 	start_mark.position = map_to_world(start, terrain_height(start) + 0.01)
+	for side: float in [-1.0, 1.0]:
+		var tee := _disc(0.038, 0.048, Color("f0ddaf"), _terrain)
+		tee.position = map_to_world(start + Vector2(side * 35.0, 0), terrain_height(start) + 0.028)
 	_last_position = map_to_world(start, terrain_height(start) + BALL_RADIUS)
 	_camera_fitted = false
+	_trail_previous = Vector3.ZERO
+	for trail in _trail:
+		trail.visible = false
+	_capture_started = -1.0
+	_last_state = -1
 
 
 func _floor_patch(rect: Rect2, top_height: float, bottom_height: float, color: Color) -> void:
@@ -297,7 +336,7 @@ func _floor_patch(rect: Rect2, top_height: float, bottom_height: float, color: C
 			faces.append(vertices[indices[offset + triangle_index]])
 	surface.generate_normals()
 	var patch_mesh := surface.commit()
-	_mesh(patch_mesh, _material(color, 0.95), _terrain)
+	_mesh(patch_mesh, _scenery.turf_material(color), _terrain)
 	var shape := ConcavePolygonShape3D.new()
 	shape.set_faces(faces)
 	shape.backface_collision = true
@@ -308,28 +347,6 @@ func _floor_patch(rect: Rect2, top_height: float, bottom_height: float, color: C
 	collider.shape = shape
 	body.add_child(collider)
 	_terrain.add_child(body)
-
-
-func _build_lawn_lines(bounds: Rect2) -> void:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	surface.set_smooth_group(-1)
-	for y in range(int(bounds.position.y) + 40, int(bounds.end.y), 70):
-		var left := Vector2(bounds.position.x + 10.0, y)
-		var right := Vector2(bounds.end.x - 10.0, y)
-		# Split at the optional ramps and water so decoration follows real terrain.
-		for x in range(int(left.x), int(right.x), 20):
-			var point := Vector2(x + 10.0, y)
-			if _course_index == 2 and Rect2(520, 460, 136, 180).has_point(point):
-				continue
-			var a := map_to_world(point + Vector2(-10.0, -0.45), terrain_height(point + Vector2(-10.0, -0.45)) + 0.005)
-			var b := map_to_world(point + Vector2(10.0, -0.45), terrain_height(point + Vector2(10.0, -0.45)) + 0.005)
-			var c := map_to_world(point + Vector2(10.0, 0.45), terrain_height(point + Vector2(10.0, 0.45)) + 0.005)
-			var d := map_to_world(point + Vector2(-10.0, 0.45), terrain_height(point + Vector2(-10.0, 0.45)) + 0.005)
-			for vertex: Vector3 in [a, b, d, b, c, d]:
-				surface.add_vertex(vertex)
-	surface.generate_normals()
-	_mesh(surface.commit(), _material(Color("398069"), 0.95), _terrain)
 
 
 func _build_rails(bounds: Rect2) -> void:
@@ -347,16 +364,35 @@ func _wall(rect: Rect2) -> void:
 	var ground := terrain_height(rect.get_center())
 	var size := Vector3(rect.size.x * WORLD_SCALE, 0.42, rect.size.y * WORLD_SCALE)
 	var position_3d := map_to_world(rect.get_center(), ground + size.y * 0.5)
-	_box(position_3d, size, Color("83ad94"), _terrain, WALL_LAYER)
-	_box(position_3d + Vector3(0, size.y * 0.5 + 0.012, 0), Vector3(size.x + 0.014, 0.024, size.z + 0.014), Color("b8d1b3"), _terrain)
+	var timber := Color("82613f") if _course_index != 1 else Color("ba9564")
+	var cap := Color("b49261") if _course_index != 1 else Color("dfc294")
+	_box(position_3d, size, timber, _terrain, WALL_LAYER)
+	_box(position_3d + Vector3(0, size.y * 0.5 + 0.016, 0), Vector3(size.x + 0.022, 0.032, size.z + 0.022), cap, _terrain)
+	# Fine inset bands make each rail read as worked timber/stone at a close
+	# camera, without adding any new collider or changing the playable bounds.
+	var horizontal := size.x > size.z
+	var trim_size := Vector3(size.x + 0.003, 0.024, size.z + 0.003)
+	for height: float in [-0.10, 0.07]:
+		_box(position_3d + Vector3(0, height, 0), trim_size, timber.darkened(0.14), _terrain)
+	if maxf(size.x, size.z) > 0.6:
+		var length := maxf(size.x, size.z)
+		for offset in range(1, int(length / 0.55) + 1):
+			var along := float(offset) * 0.55 - length * 0.5
+			var joint_position := position_3d + (Vector3(along, 0.0, 0.0) if horizontal else Vector3(0.0, 0.0, along))
+			var joint_size := Vector3(0.012, size.y + 0.005, size.z + 0.006) if horizontal else Vector3(size.x + 0.006, size.y + 0.005, 0.012)
+			_box(joint_position, joint_size, timber.darkened(0.25), _terrain)
 
 
 func _build_water(hazard: Rect2) -> void:
-	_box(map_to_world(hazard.get_center(), -0.12), Vector3(hazard.size.x * WORLD_SCALE, 0.035, hazard.size.y * WORLD_SCALE), Color("1f758a"), _terrain)
-	for y in range(int(hazard.position.y) + 15, int(hazard.end.y), 24):
-		_box(map_to_world(Vector2(hazard.get_center().x, y), -0.095), Vector3(hazard.size.x * WORLD_SCALE - 0.15, 0.006, 0.02), Color("5ac3ce"), _terrain)
+	var water := PlaneMesh.new()
+	water.size = hazard.size * WORLD_SCALE
+	var water_instance := _mesh(water, _scenery.water_material(), _terrain)
+	water_instance.position = map_to_world(hazard.get_center(), -0.095)
 	var lip := Rect2(hazard.position.x - 4.0, hazard.position.y, 4.0, hazard.size.y)
-	_box(map_to_world(lip.get_center(), -0.055), Vector3(0.04, 0.10, lip.size.y * WORLD_SCALE), Color("f7a546"), _terrain)
+	_box(map_to_world(lip.get_center(), -0.055), Vector3(0.04, 0.10, lip.size.y * WORLD_SCALE), Color("c3b18b"), _terrain)
+	for index in range(7):
+		var foam := _disc(0.021 + index % 3 * 0.005, 0.002, Color("addfce"), _terrain)
+		foam.position = map_to_world(Vector2(hazard.position.x + 10.0, hazard.position.y + 14.0 + index * 23.0), -0.086)
 
 
 func _build_hole(point: Vector2) -> void:
@@ -368,17 +404,18 @@ func _build_hole(point: Vector2) -> void:
 	rim.outer_radius = 0.25
 	rim.rings = 48
 	rim.ring_segments = 8
-	var rim_instance := _mesh(rim, _material(Color("50d9d0"), 0.6), _terrain)
+	var rim_instance := _mesh(rim, _material(Color("f0dfaa"), 0.6), _terrain)
 	rim_instance.position = map_to_world(point, height + 0.014)
 	_flag = Node3D.new()
 	_flag.position = map_to_world(point, height)
 	_terrain.add_child(_flag)
-	_segment(Vector3(0.12, 0.0, 0.0), Vector3(0.12, 1.05, 0.0), 0.015, Color("d8e5e5"), _flag)
+	_segment(Vector3(0.12, 0.0, 0.0), Vector3(0.12, 1.17, 0.0), 0.014, Color("ece2c1"), _flag)
+	for index in range(3):
+		_segment(Vector3(0.12, 0.08 + index * 0.25, 0.0), Vector3(0.12, 0.18 + index * 0.25, 0.0), 0.015, Color("7a8664"), _flag)
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	surface.add_vertex(Vector3(0.12, 1.02, 0.0))
-	surface.add_vertex(Vector3(0.54, 0.88, 0.0))
-	surface.add_vertex(Vector3(0.12, 0.74, 0.0))
+	for vertex: Vector3 in [Vector3(0.12, 1.14, 0), Vector3(0.64, 1.09, 0), Vector3(0.12, 0.83, 0), Vector3(0.64, 1.09, 0), Vector3(0.56, 0.86, 0), Vector3(0.12, 0.83, 0)]:
+		surface.add_vertex(vertex)
 	surface.generate_normals()
 	var flag_material := _material(Color("f7a546"), 0.8)
 	flag_material.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -396,20 +433,112 @@ func _update_aim(session) -> void:
 	if _aim_cache.is_equal_approx(cache):
 		return
 	_aim_cache = cache
-	for child in _aim.get_children():
-		_aim.remove_child(child)
-		child.queue_free()
 	if session.power() <= 0.0:
+		_aim.visible = false
 		return
 	var origin: Vector3 = ball.position + Vector3(0, 0.03, 0)
 	var direction_3d := Vector3(direction.x, 0.0, direction.y)
 	var length: float = 0.45 + session.power() * 1.25
 	var color: Color = Color("50d9d0").lerp(Color("f7a546"), session.power())
+	_aim_material.albedo_color = color
+	_aim_material.emission = color
 	var tip: Vector3 = origin + direction_3d * length
-	_segment(origin, tip, 0.018, color, _aim)
+	_position_segment(_aim_segments[0], origin, tip)
 	var side := Vector3(-direction_3d.z, 0.0, direction_3d.x)
-	_segment(tip, tip - direction_3d * 0.21 + side * 0.14, 0.018, color, _aim)
-	_segment(tip, tip - direction_3d * 0.21 - side * 0.14, 0.018, color, _aim)
+	_position_segment(_aim_segments[1], tip, tip - direction_3d * 0.21 + side * 0.14)
+	_position_segment(_aim_segments[2], tip, tip - direction_3d * 0.21 - side * 0.14)
+	for index in range(_aim_dots.size()):
+		var distance := (float(index) + 1.0) * 0.22
+		_aim_dots[index].position = origin + direction_3d * distance + Vector3(0, -0.08, 0)
+		_aim_dots[index].visible = distance > length * 0.82
+	var pulled: Vector3 = origin - direction_3d * (0.36 + session.power() * 0.70)
+	_aim_handle.position = pulled
+	_aim_handle.scale = Vector3.ONE * (1.0 + session.power() * 0.25)
+	_position_segment(_aim_pull, origin - direction_3d * 0.16, pulled)
+
+
+func _build_aim_pool() -> void:
+	_aim_material = _material(Color("50d9d0"), 0.65, true)
+	for index in range(3):
+		var segment := _segment(Vector3.ZERO, Vector3.UP, 0.018, Color.WHITE, _aim)
+		segment.material_override = _aim_material
+		_aim_segments.append(segment)
+	for index in range(11):
+		var dot := _disc(0.035, 0.008, Color("d5f3ce"), _aim)
+		_aim_dots.append(dot)
+	var handle := TorusMesh.new()
+	handle.inner_radius = 0.12
+	handle.outer_radius = 0.155
+	handle.rings = 24
+	handle.ring_segments = 6
+	_aim_handle = _mesh(handle, _aim_material, _aim)
+	_aim_pull = _segment(Vector3.ZERO, Vector3.UP, 0.012, Color("e7f1d3"), _aim)
+
+
+func _position_segment(instance: MeshInstance3D, start: Vector3, end: Vector3) -> void:
+	var direction := (end - start).normalized()
+	var basis := Basis.IDENTITY
+	if absf(direction.dot(Vector3.UP)) < 0.999:
+		basis = Basis(Quaternion(Vector3.UP, direction))
+	instance.transform = Transform3D(basis.scaled(Vector3(1, start.distance_to(end), 1)), (start + end) * 0.5)
+
+
+func _build_effect_pool() -> void:
+	var trail_mesh := SphereMesh.new()
+	trail_mesh.radius = 0.035
+	trail_mesh.height = 0.07
+	trail_mesh.radial_segments = 8
+	trail_mesh.rings = 4
+	var trail_material := _material(Color("d1f4de"), 0.8, true)
+	for index in range(28):
+		var stamp := _mesh(trail_mesh, trail_material, self)
+		stamp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		stamp.visible = false
+		_trail.append(stamp)
+		_trail_times.append(-10.0)
+	var ring_mesh := TorusMesh.new()
+	ring_mesh.inner_radius = 0.23
+	ring_mesh.outer_radius = 0.246
+	ring_mesh.rings = 40
+	ring_mesh.ring_segments = 6
+	for index in range(3):
+		var ring := _mesh(ring_mesh, _material(Color("efda87") if index == 1 else Color("b8edc1"), 0.8, true), self)
+		ring.visible = false
+		ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_capture_rings.append(ring)
+
+
+func _update_effects(session, elapsed: float) -> void:
+	if session.state != _last_state:
+		if session.state == Session.State.CAPTURED:
+			_capture_started = elapsed
+		elif session.state in [Session.State.MENU, Session.State.RESULT, Session.State.RETURNING]:
+			for stamp in _trail:
+				stamp.visible = false
+		_last_state = session.state
+	if session.state == Session.State.MOVING and not session.is_paused():
+		if _trail_previous.distance_to(ball.position) > 0.10:
+			var stamp := _trail[_trail_cursor]
+			stamp.position = ball.position
+			stamp.visible = true
+			stamp.scale = Vector3.ONE
+			_trail_times[_trail_cursor] = elapsed
+			_trail_cursor = (_trail_cursor + 1) % _trail.size()
+			_trail_previous = ball.position
+	else:
+		_trail_previous = ball.position
+	for index in range(_trail.size()):
+		if _trail[index].visible:
+			var age := elapsed - _trail_times[index]
+			_trail[index].visible = age < 0.46
+			_trail[index].scale = Vector3.ONE * maxf(0.05, 1.0 - age / 0.46)
+	for index in range(_capture_rings.size()):
+		var age := elapsed - _capture_started - float(index) * 0.09
+		var active: bool = _capture_started >= 0.0 and session.state == Session.State.CAPTURED and age >= 0.0 and age < 0.65
+		_capture_rings[index].visible = active
+		if active:
+			_capture_rings[index].position = hole_world_position() + Vector3(0, 0.02 + age * 0.24, 0)
+			_capture_rings[index].scale = Vector3.ONE * (1.0 + age * 4.0)
 
 
 func _fit_camera() -> void:

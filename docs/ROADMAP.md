@@ -1,13 +1,13 @@
 # Roadmap — GameLab Minigolfe
 
-Fonte de escopo: [GDD v0.3](GDD.md) e [conversão 3D](CONVERSAO_3D.md). Detalhes de verificação: [critérios de aceitação](CRITERIOS_ACEITACAO.md). O protótipo e o PCK foram implementados e verificados em Linux; evidências e limitações estão em [VALIDACAO.md](VALIDACAO_3D.md).
+Fonte de escopo: [GDD v0.4](GDD.md) e [conversão 3D](CONVERSAO_3D.md). Detalhes de verificação: [critérios de aceitação](CRITERIOS_ACEITACAO.md). O protótipo e o PCK foram implementados e verificados em Linux; evidências e limitações estão em [VALIDACAO.md](VALIDACAO_3D.md).
 
 ## Fases e estado
 
 | Fase | Entrega | Estado atual | Condição de conclusão |
 | --- | --- | --- | --- |
 | 2 — definição | GDD com regras, mapas e parâmetros | GDD v0.1 recebido e revisado | Escopo suficientemente concreto para preparar a implementação |
-| 3 — passagem para desenvolvimento | GDD v0.3, mecânicas, telas, critérios, roadmap e README | Pacote documental preparado | Documentos consistentes, decisões preservadas e testes planejados |
+| 3 — passagem para desenvolvimento | GDD v0.4, mecânicas, telas, critérios, roadmap e README | Pacote documental preparado | Documentos consistentes, decisões preservadas e testes planejados |
 | 4 — construção | Projeto Godot com os três percursos | Protótipo e PCK verificados em Linux | Executável no computador, fluxo principal disponível e verificações básicas concluídas |
 | 5 — avaliação | Relatório dos critérios, falhas e ajustes | Relatório técnico Linux disponível; avaliação humana pendente | Evidências por critério e alvo; problemas separados de pendências e testes não executados |
 | 6 — teste privado no iPhone | Versão privada testável no aparelho | Pendente | Fluxo principal, toque, área segura, suspensão e salvamento testados no iPhone real |

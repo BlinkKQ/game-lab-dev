@@ -2,7 +2,7 @@
 
 **Versão:** 0.3 · 14/10/2026  
 **Fase:** 4 — protótipo construído  
-**Fonte normativa:** GDD v0.3 e conversão 3D deste pacote, com os esclarecimentos da revisão do GDD v0.1.  
+**Fonte normativa:** GDD v0.4 e conversão 3D deste pacote, com os esclarecimentos da revisão do GDD v0.1.  
 **Situação:** validação parcial em engine/Linux; aceite no iPhone e avaliação humana pendentes. Veja [VALIDACAO.md](VALIDACAO_3D.md).
 
 Este documento preserva os identificadores AC-01 a AC-22 do GDD e acrescenta AC-23 a AC-30. Define casos, dados e evidências para o futuro projeto Godot 4/GDScript. O projeto e a suíte executável existem, com resultados registrados no relatório. A validação no iPhone permanece pendente. As verificações matemáticas feitas na revisão não aprovam nenhum critério de jogabilidade.
@@ -44,7 +44,7 @@ E, D e I indicam métodos planejados, não execuções concluídas. As variantes
 | AC-17 | Fechar e reabrir após salvar | Restaurar o melhor total no ambiente efetivamente testado | E, D, I | Parcial — ver relatório |
 | AC-18 | Ler dados ausentes, inválidos ou de versão desconhecida | Permitir jogar sem travar; preservar formato desconhecido | E, D, I | Parcial — ver relatório |
 | AC-19 | Perder foco durante mira e movimento | Nenhuma soltura atrasada gera tacada; sessão suspende e retoma corretamente | E, D, I | Parcial — ver relatório |
-| AC-20 | Usar proporções de tela distintas | Campo inteiro, textos legíveis e toque alinhado à bola | D, I | Parcial — ver relatório |
+| AC-20 | Usar proporções de tela distintas | Bola e controles visíveis, campo inteiro na visão geral e toque alinhado à bola | D, I | Parcial — ver relatório |
 | AC-21 | Confirmar e cancelar retorno ao menu | Cancelar conserva a sessão; confirmar a encerra | E, D, I | Parcial — ver relatório |
 | AC-22 | Abrir e jogar sem conexão | Menu, três mapas, resultado e recorde local disponíveis | D, I | Parcial — ver relatório |
 | AC-23 | Observar pontuação em cada captura e no feedback, com resultados 3, 4 e 5 | Totais 3, 7 e 12, sem contagem duplicada, inclusive na captura do terceiro buraco | E, D, I | Parcial — ver relatório |
@@ -62,6 +62,9 @@ E, D e I indicam métodos planejados, não execuções concluídas. As variantes
 | AC-35 | Salto automático sobre o vão | Rampa conserva movimento vertical; cruzar água no ar e aterrissar | E, D, I | Parcial — ver relatório |
 | AC-36 | Queda na água e retorno em altura | Retornar à pose segura sem tacada adicional, incluindo borda elevada | E, D, I | Parcial — ver relatório |
 | AC-37 | Apoio sobre obstáculos e pausa aérea | Pousar no topo sem travar; mirar mantendo altura; pausa congela corpo e velocidade | E, D, I | Parcial — ver relatório |
+| AC-38 | Câmera próxima durante mira, movimento e pausa | Seguir a bola; congelar lente e pose durante mira/pausa; conservar direção e força no mesmo pixel | E, D, I | Parcial — ver relatório |
+| AC-39 | Alternar visão durante um gesto e soltar dedos antigos | Cancelar sem tacada; nenhuma soltura antiga troca novamente a visão ou lança; nova mira funciona em ambas as projeções | E, D, I | Parcial — ver relatório |
+| AC-40 | Sons, pausa e silenciamento | Uma indicação sonora por evento; parar vozes na pausa/mute; reativar sem reproduzir eventos antigos | E, D, I | Parcial — ver relatório |
 
 ## 3. Preparação dos cenários
 

@@ -1,8 +1,12 @@
 # GameLab Minigolfe 3D
 
-Protótipo jogável em **Godot 4.6.3 e GDScript**, com cenário 3D, câmera inclinada e três percursos com rampas, alturas e pequenos saltos. Toque perto da bola, puxe para definir direção e força e solte para lançar. O objetivo é concluir com o menor total de tacadas.
+Protótipo jogável em **Godot 4.6.3 e GDScript**, com cenários de bosque, terraços e lagoa, câmera próxima que acompanha a bola e três percursos com rampas, alturas e pequenos saltos. Toque perto da bola, puxe para definir direção e força e solte para lançar. O objetivo é concluir com o menor total de tacadas.
+
+A versão **0.3.0** reformula a apresentação a partir das filmagens, com vegetação, materiais, água animada, rastro, captura e sons sintetizados próprios. Veja as [referências e decisões](docs/REFERENCIAS_VISUAIS.md).
 
 Inclui menu, controle por mouse/toque, mira e potência, colisões e rebotes, retorno de área fora de jogo, resultado, repetição, confirmação de abandono e recorde local. A partida funciona offline. A distribuição permanece privada.
+
+![Prévia nativa da mira, câmera e tacada](docs/images/jogada.gif)
 
 ## Abrir e jogar
 
@@ -38,7 +42,9 @@ O recorde do protótipo plano permanece no arquivo anterior; os resultados dos m
 - Clique/toque perto da bola, arraste e solte. A bola vai no sentido contrário ao arraste.
 - Volte ao início do gesto para cancelar. A mira reaparece quando a bola para.
 - Menu ou Esc abre a confirmação; Continuar conserva a sessão e Voltar ao menu a encerra.
-- Perda de foco ou suspensão pausa a sessão e cancela a mira. Recuperar o foco não fecha uma confirmação aberta.
+- **Visão geral / Seguir bola** alterna a câmera. Ela permanece imóvel durante a mira; alternar cancela o gesto sem contar tacada.
+- **Som: sim / Som: não** ativa ou silencia os efeitos.
+- Perda de foco ou suspensão pausa a sessão, cancela a mira e interrompe o som. Recuperar o foco não fecha uma confirmação aberta.
 
 ## Testar e gerar o pacote
 
@@ -47,7 +53,7 @@ sh scripts/dev.sh test
 sh scripts/dev.sh build
 ```
 
-A suíte executa **260 verificações** (229 regressões anteriores e 31 verificações específicas de 3D) de entrada na cena real, pontuação, física, pausas, JSON e falhas de gravação. Inclui uma regressão para impedir tacada involuntária ao redimensionar a janela durante a mira. Usa registros temporários isolados e retorna código diferente de zero em caso de falha.
+A suíte executa **292 verificações** (229 regressões anteriores, 31 verificações específicas de 3D e 32 de câmera, gestos e áudio) de entrada na cena real, pontuação, física, pausas, JSON e falhas de gravação. Inclui uma regressão para impedir tacada involuntária ao redimensionar a janela durante a mira. Usa registros temporários isolados e retorna código diferente de zero em caso de falha.
 
 O build produz `builds/gamelab.pck`, sem testes ou documentação. É um pacote que requer Godot 4.6.3, sem executável independente. Para jogá-lo:
 
@@ -74,9 +80,10 @@ Para manter o jogo aberto no display virtual, use os mesmos prefixos com `sh scr
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| [GDD v0.3](docs/GDD.md) e [conversão 3D](docs/CONVERSAO_3D.md) | Escopo, regras, mapas e parâmetros |
+| [GDD v0.4](docs/GDD.md) e [conversão 3D](docs/CONVERSAO_3D.md) | Escopo, regras, mapas e parâmetros |
 | [Mecânicas](docs/MECANICAS.md) e [telas](docs/TELAS.md) | Comportamento e interação |
-| [Critérios](docs/CRITERIOS_ACEITACAO.md) | AC-01 a AC-37 e métodos por plataforma |
+| [Critérios](docs/CRITERIOS_ACEITACAO.md) | AC-01 a AC-40 e métodos por plataforma |
+| [Referências visuais](docs/REFERENCIAS_VISUAIS.md) | Observações das filmagens e decisões de apresentação próprias |
 | [Validação 3D](docs/VALIDACAO_3D.md) | Evidências, comandos e limitações da versão atual |
 | [Roadmap](docs/ROADMAP.md) | Avaliação e teste privado no iPhone |
 | [Configuração](scripts/game_config.gd) e [mapas](scripts/courses.gd) | Parâmetros centralizados e percursos como dados |
@@ -92,4 +99,4 @@ O fluxo principal e o PCK foram verificados em Linux/Godot 4.6.3. A suíte tamb�
 
 **Pendentes:** avaliação humana da jogabilidade, calibração e testes no iPhone real de toque, área segura, suspensão, desempenho e persistência. A exportação iOS requer macOS/Xcode, templates e assinatura; Linux não comprova funcionamento no aparelho.
 
-Multiplayer, bots, contas, monetização e Android ficam fora do MVP. Som e arte final podem ser refinados após avaliar o controle.
+Multiplayer, bots, contas, monetização e Android ficam fora do MVP. Sons, câmera e direção artística desta revisão precisam de avaliação humana e calibração no aparelho.

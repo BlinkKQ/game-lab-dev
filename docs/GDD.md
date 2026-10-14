@@ -1,8 +1,8 @@
 # GameLab — documento de concepção do jogo
 
-**Revisão 3D:** a versão 0.3 incorpora rampas, pisos elevados e pequenos saltos. [Alturas e regras 3D](CONVERSAO_3D.md) · [Resultados da versão atual](VALIDACAO_3D.md).
+**Revisão visual:** o projeto 0.3.0 incorpora cenários completos, câmera próxima e efeitos próprios a partir das filmagens. [Referências e decisões](REFERENCIAS_VISUAIS.md). A revisão 3D anterior incorpora rampas, pisos elevados e pequenos saltos. [Alturas e regras 3D](CONVERSAO_3D.md) · [Resultados da versão atual](VALIDACAO_3D.md).
 
-**Versão:** 0.3 · 14/10/2026  
+**Versão:** 0.4 · 14/10/2026  
 **Fase:** 4 — protótipo construído; avaliação em andamento  
 **Nome de trabalho:** GameLab Minigolfe  
 **Situação:** protótipo 3D Godot 4.6.3 com rampas e saltos, verificado em Linux; avaliação humana e testes no iPhone pendentes. Veja o [relatório de validação](VALIDACAO_3D.md).  
@@ -191,9 +191,9 @@ Retângulos são descritos como **(x, y, largura, altura)** na grade de navegaç
 
 | Mapa | Nome | Posição inicial | Buraco | Paredes internas | Área fora de jogo |
 | --- | --- | --- | --- | --- | --- |
-| 01 | Linha livre | (360, 990) | (360, 260) | Nenhuma | Nenhuma |
-| 02 | Volta pela lateral | (260, 990) | (260, 280) | (64, 550, 366, 28) | Nenhuma |
-| 03 | Passagem estreita | (360, 990) | (360, 280) | (248, 650, 224, 28) e (64, 360, 136, 28) | (520, 460, 136, 180) |
+| 01 | Bosque Sereno | (360, 990) | (360, 260) | Nenhuma | Nenhuma |
+| 02 | Terraços do Sol | (260, 990) | (260, 280) | (64, 550, 366, 28) | Nenhuma |
+| 03 | Travessia Azul | (360, 990) | (360, 280) | (248, 650, 224, 28) e (64, 360, 136, 28) | (520, 460, 136, 180) |
 
 | Mapa | Experiência pretendida | Rota de referência para verificar o desenho |
 | --- | --- | --- |
@@ -252,7 +252,7 @@ Os textos de jogo devem explicar ações do jogador. Parâmetros de física e op
 
 ## 9. Som
 
-O MVP deve ser compreensível apenas pelo retorno visual. Para a etapa de polimento, prever sons breves próprios ou com permissão de uso para lançamento, colisão e captura. A colisão deve ter controle de frequência para não produzir uma sequência incômoda de sons.
+O MVP permanece compreensível pelo retorno visual. A versão 0.3.0 inclui sons sintetizados próprios de lançamento, colisão, aterrissagem, captura, retorno e interface. Contatos pequenos são ignorados e há quatro vozes no máximo. O jogador pode silenciar os efeitos; pausa interrompe as vozes ativas.
 
 Música, voz, biblioteca de sons, controles de volume e trilha temática não são necessários para concluir a primeira avaliação. Nenhum áudio da referência será reutilizado.
 
@@ -329,7 +329,7 @@ A escolha dos nós concretos, o desenho das cenas e as instruções de execuçã
 | AC-17 | Fechar e reabrir após salvar | Restaurar o melhor total no ambiente efetivamente testado |
 | AC-18 | Ler dados ausentes, inválidos ou de versão desconhecida | Permitir jogar sem travar; preservar formato desconhecido |
 | AC-19 | Perder foco durante mira e movimento | Nenhuma soltura atrasada gera tacada; sessão suspende e retoma corretamente |
-| AC-20 | Usar proporções de tela distintas | Campo inteiro, textos legíveis e toque alinhado à bola |
+| AC-20 | Usar proporções de tela distintas | Bola e controles visíveis, campo inteiro na visão geral e toque alinhado à bola |
 | AC-21 | Confirmar e cancelar retorno ao menu | Cancelar conserva a sessão; confirmar a encerra |
 | AC-22 | Abrir e jogar sem conexão | Menu, três mapas, resultado e recorde local disponíveis |
 | AC-23 | Observar total na captura, durante o feedback e após cada avanço, usando resultados 3, 4 e 5 | Totais 3, 7 e 12; contador atual zerado na captura; nenhum registro duplicado |
